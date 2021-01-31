@@ -11,12 +11,13 @@ TARGETS          := nrf52840_xxaa
 endif
 
 # So that eclipse can use the build output for indexing.
-VERBOSE=1
+# VERBOSE=1
 
 CFLAGS += $(build_args)
 
 # Path to the NRF52 SDK. Change if needed.
-SDK_ROOT := /Users/michael/Downloads/DeviceDownload/nRF5_SDK_17.0.2_d674dde
+#SDK_ROOT := /Users/michael/Downloads/DeviceDownload/nRF5_SDK_17.0.2_d674dde
+SDK_ROOT := C:/Users/pxf8601/Downloads/DeviceDownload/nRF5SDK153059ac345/nRF5_SDK_15.3.0_59ac345
 
 TARGET_PATH := $(OUTPUT_DIRECTORY)/$(TARGETS).hex
 
@@ -122,7 +123,9 @@ SRC_FILES += \
   i2c_bb.c \
   sdk_mod/nrf_esb.c \
   esb_timeslot.c \
-  ili9341.c
+  ili9341.c \
+  nrf_calendar.c
+
 
 # Include folders common to all targets
 INC_FOLDERS += \
@@ -347,7 +350,16 @@ LIB_FILES += -lc -lnosys -lm
 # Default target - first one defined
 default: $(TARGETS)
 
+# Print all targets that can be built
+help:
+	@echo following targets are available:
+	@echo		nrf52840_xxaa
+	@echo		flash_softdevice
+	@echo		sdk_config - starting external tool for editing sdk_config.h
+	@echo		flash      - flashing binary
+
 TEMPLATE_PATH := $(SDK_ROOT)/components/toolchain/gcc
+
 
 include $(TEMPLATE_PATH)/Makefile.common
 
@@ -355,21 +367,23 @@ $(foreach target, $(TARGETS), $(call define_target, $(target)))
 
 .PHONY: flash flash_softdevice erase
 
-SDK_CONFIG_FILE := ./sdk_config.h
+# Flash the program
+flash: default
+	@echo Flashing: $(OUTPUT_DIRECTORY)/nrf52840_xxaa.hex
+	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/nrf52840_xxaa.hex --sectorerase
+	nrfjprog -f nrf52 --reset
+
+# Flash softdevice
+flash_softdevice:
+	@echo Flashing: s140_nrf52_6.1.1_softdevice.hex
+	nrfjprog -f nrf52 --program $(SDK_ROOT)/components/softdevice/s140/hex/s140_nrf52_6.1.1_softdevice.hex --sectorerase
+	nrfjprog -f nrf52 --reset
+
+erase:
+	nrfjprog -f nrf52 --eraseall
+
+SDK_CONFIG_FILE := ../config/sdk_config.h
 CMSIS_CONFIG_TOOL := $(SDK_ROOT)/external_tools/cmsisconfig/CMSIS_Configuration_Wizard.jar
 sdk_config:
 	java -jar $(CMSIS_CONFIG_TOOL) $(SDK_CONFIG_FILE)
 
-upload: $(TARGET_PATH)
-	openocd -f openocd.cfg -c "program $(TARGET_PATH) verify reset exit"
-
-upload_sd:
-	openocd -f openocd.cfg -c "program $(SD_PATH) verify reset exit"
-
-mass_erase:
-	openocd -f openocd.cfg -c "init" -c "halt" -c "nrf5 mass_erase" -c "exit"
-
-merge_hex: $(TARGET_PATH)
-	mkdir -p hex
-	srec_cat $(SD_PATH) -intel $(TARGET_PATH) -intel -o hex/merged.hex -intel --line-length=44
-	arm-none-eabi-objcopy -I ihex -O binary hex/merged.hex hex/merged.bin --gap-fill 0xFF

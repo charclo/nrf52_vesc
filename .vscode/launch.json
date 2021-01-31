@@ -1,107 +1,23 @@
 {
-  // Use IntelliSense to learn about possible attributes.
-  // Hover to view descriptions of existing attributes.
-  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-  "version": "0.2.0",
-  "configurations": [
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
       {
-          "name": "NRF52 Flash and Debug",
-          "type": "cppdbg",
-          "request": "launch",
-          "args": [],
-          "stopAtEntry": true,
-          "cwd": "${workspaceFolder}",
-          "program": "${workspaceFolder}/_build/nrf52840_xxaa.out",
-          "environment": [],
-          "externalConsole": false,
-          "MIMode": "gdb",            
-          "miDebuggerServerAddress": "localhost:3333",
-          "targetArchitecture": "arm",
-          "logging": {
-              "moduleLoad": true,
-              "trace": true,
-              "engineLogging": true,
-              "programOutput": true,
-              "exceptions": true
-          },
-          
-        "miDebuggerPath": "arm-none-eabi-gdb",
-          "customLaunchSetupCommands": [
-              {
-                  "description": "Set remote target",
-                  "text": "file ${workspaceFolder}/_build/nrf52840_xxaa.out"
-              },
-              {
-                  "description": "Set remote target",
-                  "text": "target remote localhost:3333"
-              },
-              {
-                  "text": "monitor init"
-              },
-              {
-                  "text": "monitor reset halt"
-              },
-              {
-                "text": "monitor nrf5 mass_erase"
-              },
-              {
-                "description": "Flash softdevice",
-                "text": "monitor flash write_image erase /Users/michael/Downloads/DeviceDownload/nRF5_SDK_17.0.2_d674dde/components/softdevice/s140/hex/s140_nrf52_6.1.1_softdevice.hex"
-                },
-              {
-                  "description": "Flash firmware",
-                  "text": "monitor flash write_image erase ${workspaceFolder}/_build/nrf52840_xxaa.hex"
-              },
-              {
-                  "description": "Start debug",
-                  "text": "monitor reset halt"
-              }
-          ]
-      },
-      {
-          "name": "NRF52 Debug",
-          "type": "cppdbg",
-          "request": "launch",
-          "device": "nrf52840",
-          "args": [],
-          "stopAtEntry": true,
-          "runToMain": true,
-          "cwd": "${workspaceFolder}",
-          "program": "${workspaceFolder}/_build/nrf52840_xxaa.out",
-          "environment": [],
-          "externalConsole": false,
-          "MIMode": "gdb",            
-          "miDebuggerServerAddress": "localhost:3333",
-          "targetArchitecture": "arm",
-          "svdFile": "${workspaceRoot}/tools/nrf52840.svd",
-          "logging": {
-              "moduleLoad": true,
-              "trace": true,
-              "engineLogging": true,
-              "programOutput": true,
-              "exceptions": true
-          },
-        "miDebuggerPath": "arm-none-eabi-gdb",
-          "customLaunchSetupCommands": [
-              {
-                  "description": "Set remote target",
-                  "text": "file ${workspaceFolder}/_build/nrf52840_xxaa.out"
-              },
-              {
-                  "description": "Set remote target",
-                  "text": "target remote localhost:3333"
-              },
-              {
-                  "text": "monitor init"
-              },
-              {
-                  "text": "monitor reset init"
-              },
-              {
-                  "description": "Start debug",
-                  "text": "monitor reset halt"
-              }
-          ]
-      },
-  ]
-}
+      "type": "cortex-debug",
+      "request": "launch",
+      "name": "Debug J-Link",
+      "cwd": "${workspaceFolder}",
+      "executable": "${workspaceFolder}/_build/nrf52840_xxaa.out",
+      "serverpath": "C:/Program Files (x86)/SEGGER/JLink/JLinkGDBServerCL.exe", 
+      "servertype": "jlink",
+      "device": "nrf52",
+      "interface": "swd",
+      "serialNumber": "", //If you have more than one J-Link probe, add the serial number here.
+
+      "runToMain": true,
+      "svdFile": "${workspaceFolder}/nrf52840.svd" 
+      }
+      ]
+    }
