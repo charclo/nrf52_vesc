@@ -40,6 +40,10 @@
 #include "bsp_btn_ble.h"
 #include "nrf_delay.h"
 
+#include "nrf_gfx.h"
+#include "nrf52_dk.h"
+//#include "nrf_lcd.h"
+
 #if defined (UART_PRESENT)
 #include "nrf_uart.h"
 #endif
@@ -63,13 +67,30 @@
 #include "datatypes.h"
 #include "esb_timeslot.h"
 #include "crc.h"
+#include "nrf_calendar.h"
+
+//#define GRAY            0xC618
+#define GRAY            0x07E0
+#define RED             0xF800
+#define BLUE            0x001F
+#define BLACK			0x0000
+#define WHITE			0xFFFF
+
+#define LINE_STEP       10
+
+#define CIRCLE_RADIUS   10
+#define CIRCLE_STEP     ((2 * CIRCLE_RADIUS) + 1)
+
+#define BORDER          2
+
+static const char * test_text = "FROST-E, the best screen in town. 45V 26.54km";
 
 #ifndef MODULE_BUILTIN
-#define MODULE_BUILTIN					1
+#define MODULE_BUILTIN					0
 #endif
 
-#ifndef MODULE_RD2
-#define MODULE_RD2						0
+#ifndef MODULE_RD
+//#define MODULE_RD						0
 #endif
 
 #define APP_BLE_CONN_CFG_TAG            1                                           /**< A tag identifying the SoftDevice BLE configuration. */
@@ -77,7 +98,7 @@
 #ifdef NRF52840_XXAA
 #if MODULE_BUILTIN
 #define DEVICE_NAME                     "VESC 52840 BUILTIN"
-#elif defined(MODULE_RD2)
+#elif defined(MODULE_RD)
 #define DEVICE_NAME                     "VESC RAD2"
 #else
 #define DEVICE_NAME                     "VESC 52840 UART"
@@ -131,10 +152,10 @@
 #define UART_TX_DISABLED				18
 #define LED_PIN							15
 #else
-#define UART_RX							11
-#define UART_TX							8
-#define UART_TX_DISABLED				25
-#define LED_PIN							7
+#define UART_RX							2
+#define UART_TX							26
+#define UART_TX_DISABLED                                        25
+#define LED_PIN							13
 #endif
 #else
 #if MODULE_BUILTIN
@@ -170,6 +191,12 @@ static ble_uuid_t m_adv_uuids[]          =                                      
 static volatile bool					m_is_enabled = true;
 static volatile bool					m_uart_error = false;
 static volatile int						m_other_comm_disable_time = 0;
+
+extern const nrf_gfx_font_desc_t orkney_8ptFontInfo;
+extern const nrf_lcd_t nrf_lcd_ili9341;
+
+static const nrf_gfx_font_desc_t * p_font = &orkney_8ptFontInfo;
+static const nrf_lcd_t * p_lcd = &nrf_lcd_ili9341;
 
 app_uart_comm_params_t m_uart_comm_params =
 {
@@ -213,6 +240,9 @@ APP_USBD_CDC_ACM_GLOBAL_DEF(m_app_cdc_acm,
 		CDC_ACM_DATA_EPOUT,
 		APP_USBD_CDC_COMM_PROTOCOL_NONE
 );
+
+// function prototypes
+static void text_print(uint8_t x, uint8_t y, uint16_t color, const char* text);
 
 static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const * p_inst, app_usbd_cdc_acm_user_event_t event) {
 	switch (event) {
@@ -284,6 +314,11 @@ static void usbd_user_ev_handler(app_usbd_event_type_t event) {
 void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
 {
 	app_error_handler(DEAD_BEEF, line_num, p_file_name);
+}
+
+static void gfx_initialization(void)
+{
+    APP_ERROR_CHECK(nrf_gfx_init(p_lcd));
 }
 
 static void gap_params_init(void)
@@ -415,14 +450,14 @@ static void on_adv_evt(ble_adv_evt_t ble_adv_evt) {
 static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context) {
 	switch (p_ble_evt->header.evt_id) {
 	case BLE_GAP_EVT_CONNECTED:
-		nrf_gpio_pin_set(LED_PIN);
+		nrf_gpio_pin_clear(LED_PIN);
 		m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
 		nrf_ble_qwr_conn_handle_assign(&m_qwr, m_conn_handle);
 		sd_ble_gap_tx_power_set(BLE_GAP_TX_POWER_ROLE_CONN, m_conn_handle, 8);
 		break;
 
 	case BLE_GAP_EVT_DISCONNECTED:
-		nrf_gpio_pin_clear(LED_PIN);
+		nrf_gpio_pin_set(LED_PIN);
 		m_conn_handle = BLE_CONN_HANDLE_INVALID;
 		break;
 
@@ -622,7 +657,21 @@ static void process_packet_ble(unsigned char *data, unsigned int len) {
 	CRITICAL_REGION_EXIT();
 }
 
+
+//int y_pos = 0;
 static void process_packet_vesc(unsigned char *data, unsigned int len) {
+
+		//unsigned int i = 1;
+		//float battery_level = buffer_get_float16(data, 1e3, &i);
+		//uint8_t buffer[10];
+		//sprintf(buffer, "%f", battery_level);
+		//text_print(4, 4 + 12 * y_pos, WHITE, buffer);
+		//y_pos += 1;
+/* 		vesc_val.speed = buffer_get_float32(info->rx_payload.data, 1e3, &index);
+		vesc_val.distance = buffer_get_float32(info->rx_payload.data, 1e3, &index);
+		vesc_val.temp_fet = buffer_get_float16(info->rx_payload.data, 1e1, &index);
+		vesc_val.temp_motor = buffer_get_float16(info->rx_payload.data, 1e1, &index); */
+	
 	if (data[0] == COMM_EXT_NRF_ESB_SET_CH_ADDR) {
 		esb_timeslot_set_ch_addr(data[1], data[2], data[3], data[4]);
 	} else if (data[0] == COMM_EXT_NRF_ESB_SEND_DATA) {
@@ -670,6 +719,100 @@ void cdc_printf(const char* format, ...) {
 #endif
 }
 
+static void brackground_set(void)
+{
+    nrf_gfx_invert(p_lcd, true);
+    nrf_gfx_background_set(p_lcd, nrf52);
+    nrf_gfx_invert(p_lcd, false);
+}
+
+static void text_print(uint8_t x, uint8_t y, uint16_t color, const char* text)
+{
+    nrf_gfx_point_t text_start = NRF_GFX_POINT(x,  y);
+    APP_ERROR_CHECK(nrf_gfx_print(p_lcd, &text_start, color, text, p_font, true));
+}
+
+static void screen_clear(void)
+{
+    nrf_gfx_screen_fill(p_lcd, BLACK);
+}
+
+static void line_draw(void)
+{
+    nrf_gfx_line_t my_line = NRF_GFX_LINE(0, 0, 0, nrf_gfx_height_get(p_lcd), 2);
+    nrf_gfx_line_t my_line_2 = NRF_GFX_LINE(nrf_gfx_width_get(p_lcd), nrf_gfx_height_get(p_lcd), 0, nrf_gfx_height_get(p_lcd), 1);
+
+    for (uint16_t i = 0; i <= nrf_gfx_width_get(p_lcd); i += LINE_STEP)
+    {
+        my_line.x_end = i;
+        APP_ERROR_CHECK(nrf_gfx_line_draw(p_lcd, &my_line, RED));
+    }
+
+    my_line.x_end = nrf_gfx_width_get(p_lcd);
+
+    for (uint16_t i = 0; i <= nrf_gfx_height_get(p_lcd); i += LINE_STEP)
+    {
+        my_line.y_end = (nrf_gfx_height_get(p_lcd) - i);
+        APP_ERROR_CHECK(nrf_gfx_line_draw(p_lcd, &my_line, RED));
+    }
+
+    for (uint16_t i = 0; i <= nrf_gfx_height_get(p_lcd); i += LINE_STEP)
+    {
+        my_line_2.y_end = (nrf_gfx_height_get(p_lcd) - i);
+        APP_ERROR_CHECK(nrf_gfx_line_draw(p_lcd, &my_line_2, BLUE));
+    }
+
+    my_line_2.y_end = 0;
+
+    for (uint16_t i = 0; i <= nrf_gfx_width_get(p_lcd); i += LINE_STEP)
+    {
+        my_line_2.x_end = i;
+        APP_ERROR_CHECK(nrf_gfx_line_draw(p_lcd, &my_line_2, BLUE));
+    }
+}
+
+static void circle_draw(uint8_t x, uint8_t y, uint8_t radius, uint16_t color, bool fill)
+{
+    nrf_gfx_circle_t my_circle = NRF_GFX_CIRCLE(x, y, radius);
+    APP_ERROR_CHECK(nrf_gfx_circle_draw(p_lcd, &my_circle, color, fill));
+}
+
+static void rect_draw(void)
+{
+    nrf_gfx_rect_t my_rect = NRF_GFX_RECT(nrf_gfx_width_get(p_lcd) / 2,
+                             nrf_gfx_height_get(p_lcd) / nrf_gfx_width_get(p_lcd),
+                             nrf_gfx_height_get(p_lcd),
+                             BORDER);
+    nrf_gfx_rect_t my_rect_fill = NRF_GFX_RECT(nrf_gfx_width_get(p_lcd) / 2,
+                                  nrf_gfx_height_get(p_lcd) / nrf_gfx_width_get(p_lcd),
+                                  nrf_gfx_height_get(p_lcd),
+                                  BORDER);
+
+    nrf_gfx_rotation_set(p_lcd, NRF_LCD_ROTATE_90);
+
+    for (uint16_t i = 0, j = 0;
+        i <= (nrf_gfx_width_get(p_lcd) - (2 * BORDER)) / 2 &&
+        j <= (nrf_gfx_height_get(p_lcd) - (2 * BORDER)) / 2;
+        i += 6, j += 8)
+    {
+        my_rect.x = i;
+        my_rect.y = j;
+        my_rect_fill.x = i + BORDER;
+        my_rect_fill.y = j + BORDER;
+        my_rect.width = nrf_gfx_width_get(p_lcd) - i * 2;
+        my_rect.height = nrf_gfx_height_get(p_lcd) - j * 2;
+        my_rect_fill.width = nrf_gfx_width_get(p_lcd) - i * 2 - (2 * BORDER);
+        my_rect_fill.height = nrf_gfx_height_get(p_lcd) - j * 2 - (2 * BORDER);
+
+        // Draw using pseudo-random colors.
+        APP_ERROR_CHECK(nrf_gfx_rect_draw(p_lcd, &my_rect, 2, ((i + j) * 10), false));
+        APP_ERROR_CHECK(nrf_gfx_rect_draw(p_lcd, &my_rect_fill, 2, (UINT16_MAX - (i + j) * 10), true));
+    }
+
+    nrf_gfx_rotation_set(p_lcd, NRF_LCD_ROTATE_0);
+
+}
+
 static void esb_timeslot_data_handler(void *p_data, uint16_t length) {
 	if (m_other_comm_disable_time == 0) {
 		uint8_t buffer[length + 1];
@@ -706,8 +849,224 @@ static void nrf_timer_handler(void *p_context) {
 	cdc_printf("Test\r\n");
 }
 
+uint16_t setColor(uint8_t red8, uint8_t green8, uint8_t blue8) {
+    // rgb16 = red5 green6 blue5
+    return (red8 >> 3) << 11 | (green8 >> 2) << 5 | (blue8 >> 3);
+}
+
+// Remember how many cells are currently filled so that we can update the indicators more efficiently.
+uint8_t _battery_cells_filled = 0;
+
+void _update_battery_indicator(float battery_percent, bool redraw) {
+    int width = 15;
+    int space = 2;
+    int cell_count = 10;
+
+	nrf_gfx_rect_t my_rect = NRF_GFX_RECT(nrf_gfx_width_get(p_lcd) / 2,
+                             nrf_gfx_height_get(p_lcd) / nrf_gfx_width_get(p_lcd),
+                             nrf_gfx_height_get(p_lcd),
+                             BORDER);
+
+    int cells_to_fill = round(battery_percent * cell_count);
+    for (int i=0; i<cell_count; i++) {
+        bool is_filled = (i < _battery_cells_filled);
+        bool should_be_filled = (i < cells_to_fill);
+        if (should_be_filled != is_filled || redraw) {
+            int x = (i) * (width + space);
+            uint8_t green = (uint8_t)(255.0 / (cell_count - 1) * i);
+            uint8_t red = 255 - green;
+            uint16_t color = setColor(red, green, 0);
+			my_rect.x = x + 4;
+        	my_rect.y = 1;
+        	my_rect.width = 15;
+        	my_rect.height = 15;
+			APP_ERROR_CHECK(nrf_gfx_rect_draw(p_lcd, &my_rect, 1, color, true));
+            if (!should_be_filled){
+				my_rect.x = x + 5;
+				my_rect.y = 2;
+				my_rect.width = 13;
+				my_rect.height = 13;
+				APP_ERROR_CHECK(nrf_gfx_rect_draw(p_lcd, &my_rect, 1, BLACK, true));
+				}
+        }
+    }
+    _battery_cells_filled = cells_to_fill;
+}
+
+const bool FONT_DIGITS_3x5[10][5][3] = {
+        {
+                {1, 1, 1},
+                {1, 0, 1},
+                {1, 0, 1},
+                {1, 0, 1},
+                {1, 1, 1},
+        },
+        {
+                {0, 0, 1},
+                {0, 0, 1},
+                {0, 0, 1},
+                {0, 0, 1},
+                {0, 0, 1},
+        },
+        {
+                {1, 1, 1},
+                {0, 0, 1},
+                {1, 1, 1},
+                {1, 0, 0},
+                {1, 1, 1},
+        },
+        {
+                {1, 1, 1},
+                {0, 0, 1},
+                {0, 1, 1},
+                {0, 0, 1},
+                {1, 1, 1},
+        },
+        {
+                {1, 0, 1},
+                {1, 0, 1},
+                {1, 1, 1},
+                {0, 0, 1},
+                {0, 0, 1},
+        },
+        {
+                {1, 1, 1},
+                {1, 0, 0},
+                {1, 1, 1},
+                {0, 0, 1},
+                {1, 1, 1},
+        },
+        {
+                {1, 1, 1},
+                {1, 0, 0},
+                {1, 1, 1},
+                {1, 0, 1},
+                {1, 1, 1},
+        },
+        {
+                {1, 1, 1},
+                {0, 0, 1},
+                {0, 0, 1},
+                {0, 0, 1},
+                {0, 0, 1},
+        },
+        {
+                {1, 1, 1},
+                {1, 0, 1},
+                {1, 1, 1},
+                {1, 0, 1},
+                {1, 1, 1},
+        },
+        {
+                {1, 1, 1},
+                {1, 0, 1},
+                {1, 1, 1},
+                {0, 0, 1},
+                {1, 1, 1},
+        }
+};
+
+void tft_util_draw_digit(uint8_t digit, uint8_t x, uint8_t y,
+        uint16_t fg_color, uint16_t bg_color, uint8_t magnify) {
+    for (int xx = 0; xx < 3; xx++) {
+        for (int yy = 0; yy < 5; yy++) {
+            uint16_t color = FONT_DIGITS_3x5[digit][yy][xx] ? fg_color : bg_color;
+				nrf_gfx_rect_t my_rect = NRF_GFX_RECT(x + xx * magnify,
+                             y + yy * magnify,
+                             magnify,
+                             magnify);
+			APP_ERROR_CHECK(nrf_gfx_rect_draw(p_lcd, &my_rect, 1, color, true));
+        }
+    }
+}
+
+void tft_util_draw_number(
+        char *number, uint8_t x, uint8_t y,
+        uint16_t fg_color, uint16_t bg_color, uint8_t spacing, uint8_t magnify) {
+    int cursor_x = x;
+    int number_len = strlen(number);
+    for (int i=0; i < number_len; i++) {
+        char ch = number[i];
+        if (ch >= '0' && ch <= '9') {
+            tft_util_draw_digit(ch - '0', cursor_x, y, fg_color, bg_color, magnify);
+            cursor_x += 3 * magnify + spacing;
+        } else if (ch == '.') {
+			nrf_gfx_rect_t my_rect = NRF_GFX_RECT(cursor_x,
+				y + 4 * magnify,
+				magnify,
+				magnify);
+			APP_ERROR_CHECK(nrf_gfx_rect_draw(p_lcd, &my_rect, 1, fg_color, true));
+            cursor_x += magnify + spacing;
+/*         } else if (ch == '-') {
+            tft->fillRectangle(cursor_x, y, cursor_x + 3 * magnify - 1, y + 5 * magnify - 1, bg_color);
+            tft->fillRectangle(cursor_x, y + 2 * magnify, cursor_x + 3 * magnify - 1, y + 3 * magnify - 1, fg_color);
+            cursor_x += 3 * magnify + spacing; */
+/*         } else if (ch == ' ') {
+            tft->fillRectangle(cursor_x, y, cursor_x + 3 * magnify - 1, y + 5 * magnify - 1, bg_color);
+            cursor_x += 3 * magnify + spacing; */
+        }
+    }
+}
+
+float trip = 12.4f;
+float speed = 10.1f;
+
+void draw_ui(){
+
+	nrf_gfx_display(p_lcd);
+	_update_battery_indicator(0.5f, true);
+
+	text_print(0, 110, WHITE, "TRIP KM     ");
+	text_print(0, 175, WHITE, "TOTAL KM    ");
+	text_print(110, 110, WHITE, "WATTS       ");
+	text_print(110, 175, WHITE, "BATT V");
+
+	text_print(145, 21, WHITE, "KMH");
+
+	uint8_t temperature[] = {'2', '0', '.', '3'};
+	tft_util_draw_number(temperature, 4, 21, WHITE, BLACK, 2, 2);
+	circle_draw(37, 22, 1, WHITE, false);
+	text_print(40, 21, WHITE, "C");
+
+	uint8_t buffer[10];
+        sprintf(buffer, "%.1f", speed);
+	tft_util_draw_number(buffer, 2, 35, WHITE, BLACK, 10, 14);
+
+
+    sprintf(buffer, "%.1f", trip);
+	tft_util_draw_number(buffer, 0, 130, WHITE, BLACK, 2, 6);
+
+	float watts = 245.3f;
+    sprintf(buffer, "%.1f", watts);
+	tft_util_draw_number(buffer, 90, 130, WHITE, BLACK, 2, 6);
+
+	float total = 108.4f;
+    sprintf(buffer, "%.1f", total);
+	tft_util_draw_number(buffer, 0, 190, WHITE, BLACK, 2, 6);
+
+	float voltage = 39.9f;
+    sprintf(buffer, "%.1f", voltage);
+	tft_util_draw_number(buffer, 105, 190, WHITE, BLACK, 2, 6);
+}
+
+void draw_options(){
+	nrf_gfx_display(p_lcd);
+
+	text_print(5, 10, WHITE, "Option 1");
+	text_print(5, 30, WHITE, "Option 2");
+	text_print(5, 50, WHITE, "Option 3");
+	text_print(5, 70, WHITE, "Option 4");
+}
+
+void print_current_time()
+{
+    //printf("Uncalibrated time:\t%s\r\n", nrf_cal_get_time_string(false));
+    //printf("Calibrated time:\t%s\r\n", nrf_cal_get_time_string(true));
+}
+
 int main(void) {
 	nrf_gpio_cfg_output(LED_PIN);
+        nrf_gpio_pin_set(LED_PIN); // Turn the LED off
 
 #ifdef NRF52840_XXAA
 	nrf_drv_clock_init();
@@ -721,6 +1080,8 @@ int main(void) {
 	app_usbd_class_inst_t const * class_cdc_acm = app_usbd_cdc_acm_class_inst_get(&m_app_cdc_acm);
 	app_usbd_class_append(class_cdc_acm);
 #endif
+        nrf_cal_init();
+        nrf_cal_set_callback(print_current_time, 60);
 
 	uart_init();
 	app_timer_init();
@@ -731,6 +1092,14 @@ int main(void) {
 	services_init();
 	advertising_init();
 	conn_params_init();
+	gfx_initialization();
+
+
+        //printf("\r\nClock started\n");
+
+	nrf_gfx_display(p_lcd);
+
+	draw_ui();
 
 	(void)set_enabled;
 
@@ -749,6 +1118,8 @@ int main(void) {
 #ifdef NRF52840_XXAA
 	app_usbd_power_events_enable();
 #endif
+	
+    nrf_delay_ms(1000);
 
 	start_advertising();
 
@@ -768,6 +1139,32 @@ int main(void) {
 		while (app_uart_get(&byte) == NRF_SUCCESS) {
 			packet_process_byte(byte, PACKET_VESC);
 		}
+
+		uint8_t buffer[10];
+		uint32_t time = app_timer_cnt_get();
+
+
+/* 		time = app_timer_cnt_diff_compute(app_timer_cnt_get(), time);
+		sprintf(buffer, "%u", time);
+		text_print(5, 5, WHITE, buffer);
+
+		float seconds_elapsed = (float)time / (32 * 1000);
+		sprintf(buffer, "%f", seconds_elapsed);
+		text_print(5, 15, WHITE, buffer); */
+		
+
+ 		trip+=0.1;
+		sprintf(buffer, "%.1f", trip);
+		tft_util_draw_number(buffer, 0, 130, WHITE, BLACK, 2, 6);
+
+		speed+=0.1;
+		sprintf(buffer, "%.1f", speed);
+		tft_util_draw_number(buffer, 2, 35, WHITE, BLACK, 10, 14);
+
+		// nrf_gfx_display(p_lcd);
+
+
+		nrf_delay_ms(300);
 
 		sd_app_evt_wait();
 	}

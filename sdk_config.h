@@ -3284,7 +3284,7 @@
 // <e> NRFX_SPIM_ENABLED - nrfx_spim - SPIM peripheral driver
 //==========================================================
 #ifndef NRFX_SPIM_ENABLED
-#define NRFX_SPIM_ENABLED 0
+#define NRFX_SPIM_ENABLED 1
 #endif
 // <q> NRFX_SPIM0_ENABLED  - Enable SPIM0 instance
  
@@ -3305,6 +3305,10 @@
 
 #ifndef NRFX_SPIM2_ENABLED
 #define NRFX_SPIM2_ENABLED 0
+#endif
+
+#ifndef NRFX_SPIM3_ENABLED
+#define NRFX_SPIM3_ENABLED 1
 #endif
 
 // <o> NRFX_SPIM_MISO_PULL_CFG  - MISO pin pull configuration.
@@ -3524,7 +3528,7 @@
 // <e> NRFX_SPI_ENABLED - nrfx_spi - SPI peripheral driver
 //==========================================================
 #ifndef NRFX_SPI_ENABLED
-#define NRFX_SPI_ENABLED 0
+#define NRFX_SPI_ENABLED 1
 #endif
 // <q> NRFX_SPI0_ENABLED  - Enable SPI0 instance
  
@@ -3537,7 +3541,7 @@
  
 
 #ifndef NRFX_SPI1_ENABLED
-#define NRFX_SPI1_ENABLED 0
+#define NRFX_SPI1_ENABLED 1
 #endif
 
 // <q> NRFX_SPI2_ENABLED  - Enable SPI2 instance
@@ -5416,7 +5420,7 @@
 // <e> SPI_ENABLED - nrf_drv_spi - SPI/SPIM peripheral driver - legacy layer
 //==========================================================
 #ifndef SPI_ENABLED
-#define SPI_ENABLED 0
+#define SPI_ENABLED 1
 #endif
 // <o> SPI_DEFAULT_CONFIG_IRQ_PRIORITY  - Interrupt priority
  
@@ -5462,7 +5466,7 @@
 // <e> SPI1_ENABLED - Enable SPI1 instance
 //==========================================================
 #ifndef SPI1_ENABLED
-#define SPI1_ENABLED 0
+#define SPI1_ENABLED 1
 #endif
 // <q> SPI1_USE_EASY_DMA  - Use EasyDMA
  
@@ -5748,7 +5752,7 @@
 // <e> TWI1_ENABLED - Enable TWI1 instance
 //==========================================================
 #ifndef TWI1_ENABLED
-#define TWI1_ENABLED 1
+#define TWI1_ENABLED 0
 #endif
 // <q> TWI1_USE_EASY_DMA  - Use EasyDMA (if present)
  
@@ -6241,6 +6245,12 @@
 
 #ifndef APP_USBD_DEVICE_VER_MINOR
 #define APP_USBD_DEVICE_VER_MINOR 0
+#endif
+
+// <i> 
+
+#ifndef APP_USBD_DEVICE_VER_SUB
+#define APP_USBD_DEVICE_VER_SUB 0
 #endif
 
 // <q> APP_USBD_CONFIG_SELF_POWERED  - Self-powered device, as opposed to bus-powered.
@@ -7124,7 +7134,7 @@
  
 
 #ifndef NRF_GFX_ENABLED
-#define NRF_GFX_ENABLED 0
+#define NRF_GFX_ENABLED 1
 #endif
 
 // <q> NRF_MEMOBJ_ENABLED  - nrf_memobj - Linked memory allocator module
@@ -7266,7 +7276,7 @@
  
 
 #ifndef NRF_SORTLIST_ENABLED
-#define NRF_SORTLIST_ENABLED 0
+#define NRF_SORTLIST_ENABLED 1
 #endif
 
 // <q> NRF_SPI_MNGR_ENABLED  - nrf_spi_mngr - SPI transaction manager
@@ -11805,6 +11815,98 @@
 // </h> 
 //==========================================================
 
+//==========================================================
+
+// <h> nRF_Drivers_External 
+
+//==========================================================
+// <e> ILI9341_ENABLED - ili9341 - ILI9341 TFT controller
+//==========================================================
+#ifndef ILI9341_ENABLED
+#define ILI9341_ENABLED 1
+#endif
+// <h> SPI_CONFIGURATION - SPI configuration
+
+//==========================================================
+// <o> ILI9341_SCK_PIN - Pin number  <0-47> 
+
+
+#ifndef ILI9341_SCK_PIN
+#define ILI9341_SCK_PIN 13
+#endif
+
+// <o> ILI9341_MISO_PIN - Pin number  <0-47> 
+
+
+#ifndef ILI9341_MISO_PIN
+#define ILI9341_MISO_PIN 36
+#endif
+
+// <o> ILI9341_MOSI_PIN - Pin number  <0-47> 
+
+
+#ifndef ILI9341_MOSI_PIN
+#define ILI9341_MOSI_PIN 15
+#endif
+
+// <o> ILI9341_SS_PIN - Pin number  <0-47> 
+
+
+#ifndef ILI9341_SS_PIN
+#define ILI9341_SS_PIN 22
+#endif
+
+// </h> 
+//==========================================================
+
+// <o> ILI9341_SPI_INSTANCE
+ 
+// <0=> 0 
+// <1=> 1 
+// <2=> 2 
+
+#ifndef ILI9341_SPI_INSTANCE
+#define ILI9341_SPI_INSTANCE 3
+#endif
+
+// <o> ILI9341_DC_PIN - Pin number  <0-47> 
+
+
+#ifndef ILI9341_DC_PIN
+#define ILI9341_DC_PIN 24
+#endif
+
+// <o> ILI9341_HEIGHT - ILI9341 height  <0-320> 
+
+
+#ifndef ILI9341_HEIGHT
+#define ILI9341_HEIGHT 220
+#endif
+
+// <o> ILI9341_WIDTH - ILI9341 width  <0-240> 
+
+
+#ifndef ILI9341_WIDTH
+#define ILI9341_WIDTH 176
+#endif
+
+
+// <o> ILI9341_IRQ_PRIORITY  - Interrupt priority
+ 
+
+// <i> Priorities 0,2 (nRF51) and 0,1,4,5 (nRF52) are reserved for SoftDevice
+// <0=> 0 (highest) 
+// <1=> 1 
+// <2=> 2 
+// <3=> 3 
+// <4=> 4 
+// <5=> 5 
+// <6=> 6 
+// <7=> 7 
+
+#ifndef ILI9341_IRQ_PRIORITY
+#define ILI9341_IRQ_PRIORITY 3
+#endif
 
 // </e>
 

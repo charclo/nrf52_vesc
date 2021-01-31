@@ -16,7 +16,7 @@ VERBOSE=1
 CFLAGS += $(build_args)
 
 # Path to the NRF52 SDK. Change if needed.
-SDK_ROOT := /home/benjamin/Dokument/nrf52/nRF5_SDK_15.3.0_59ac345
+SDK_ROOT := /Users/michael/Downloads/DeviceDownload/nRF5_SDK_17.0.2_d674dde
 
 TARGET_PATH := $(OUTPUT_DIRECTORY)/$(TARGETS).hex
 
@@ -109,13 +109,20 @@ SRC_FILES += \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_twim.c \
   $(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_twi.c \
   $(SDK_ROOT)/components/ble/nrf_ble_qwr/nrf_ble_qwr.c \
+  $(SDK_ROOT)/components/ble/nrf_ble_qwr/nrf_ble_qwr.c \
+  $(SDK_ROOT)/components/libraries/gfx/nrf_gfx.c \
+  $(SDK_ROOT)/external/thedotfactory_fonts/orkney24pts.c \
+  $(SDK_ROOT)/external/thedotfactory_fonts/orkney8pts.c \
+  $(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_spi.c \
+  $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_spim.c \
   main.c \
   buffer.c \
   crc.c \
   packet.c \
   i2c_bb.c \
   sdk_mod/nrf_esb.c \
-  esb_timeslot.c
+  esb_timeslot.c \
+  ili9341.c
 
 # Include folders common to all targets
 INC_FOLDERS += \
@@ -231,6 +238,7 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/libraries/gpiote \
   $(SDK_ROOT)/components/libraries/button \
   $(SDK_ROOT)/modules/nrfx \
+  $(SDK_ROOT)/modules/nrfx/drivers/include \
   $(SDK_ROOT)/components/libraries/twi_sensor \
   $(SDK_ROOT)/integration/nrfx/legacy \
   $(SDK_ROOT)/components/libraries/usbd \
@@ -250,6 +258,10 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/nfc/ndef/conn_hand_parser/ac_rec_parser \
   $(SDK_ROOT)/components/libraries/stack_guard \
   $(SDK_ROOT)/components/libraries/log/src \
+  $(SDK_ROOT)/external/thedotfactory_fonts \
+  $(SDK_ROOT)/components/libraries/gfx \
+  $(SDK_ROOT)/integration/nrfx/legacy \
+  $(SDK_ROOT)/modules/nrfx/drivers/include \
   . \
   sdk_mod \
 
@@ -361,4 +373,3 @@ merge_hex: $(TARGET_PATH)
 	mkdir -p hex
 	srec_cat $(SD_PATH) -intel $(TARGET_PATH) -intel -o hex/merged.hex -intel --line-length=44
 	arm-none-eabi-objcopy -I ihex -O binary hex/merged.hex hex/merged.bin --gap-fill 0xFF
-	
