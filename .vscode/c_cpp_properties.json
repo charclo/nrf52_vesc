@@ -12,12 +12,12 @@
             "defines": [
                 "APP_TIMER_V2",
                 "APP_TIMER_V2_RTC1_ENABLED",
-                "BOARD_PCA10059",
+                "BOARD_PCA10056",
                 "CONFIG_GPIO_AS_PINRESET",
                 "FLOAT_ABI_HARD",
                 "NRF52840_XXAA",
                 "NRF_SD_BLE_API_VERSION=6",
-                "S340",
+                "S140",
                 "SOFTDEVICE_PRESENT",
                 "BL_SETTINGS_ACCESS_ONLY",
                 "RF_DFU_TRANSPORT_BLE=1"

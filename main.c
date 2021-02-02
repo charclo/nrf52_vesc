@@ -1129,8 +1129,8 @@ void draw_options()
 
 void print_current_time()
 {
-	//printf("Uncalibrated time:\t%s\r\n", nrf_cal_get_time_string(false));
-	//printf("Calibrated time:\t%s\r\n", nrf_cal_get_time_string(true));
+	printf("Uncalibrated time:\t%s\r\n", nrf_cal_get_time_string(false));
+	printf("Calibrated time:\t%s\r\n", nrf_cal_get_time_string(true));
 }
 
 int main(void)
@@ -1150,7 +1150,7 @@ int main(void)
 	app_usbd_class_append(class_cdc_acm);
 #endif
 	nrf_cal_init();
-	nrf_cal_set_callback(print_current_time, 60);
+	nrf_cal_set_callback(print_current_time, 10);
 
 	uart_init();
 	app_timer_init();
