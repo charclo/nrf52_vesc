@@ -120,10 +120,9 @@ SRC_FILES += \
   buffer.c \
   crc.c \
   packet.c \
-  i2c_bb.c \
   sdk_mod/nrf_esb.c \
   esb_timeslot.c \
-  ili9341.c \
+  ili9225.c \
   nrf_calendar.c
 
 

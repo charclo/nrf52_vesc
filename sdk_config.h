@@ -11437,70 +11437,70 @@
 // <h> nRF_Drivers_External
 
 //==========================================================
-// <e> ILI9341_ENABLED - ili9341 - ILI9341 TFT controller
+// <e> ILI9225_ENABLED - ili9225 - ILI9225 TFT controller
 //==========================================================
-#ifndef ILI9341_ENABLED
-#define ILI9341_ENABLED 1
+#ifndef ILI9225_ENABLED
+#define ILI9225_ENABLED 1
 #endif
 // <h> SPI_CONFIGURATION - SPI configuration
 
 //==========================================================
-// <o> ILI9341_SCK_PIN - Pin number  <0-47>
+// <o> ILI9225_SCK_PIN - Pin number  <0-47>
 
-#ifndef ILI9341_SCK_PIN
-#define ILI9341_SCK_PIN 25
+#ifndef ILI9225_SCK_PIN
+#define ILI9225_SCK_PIN NRF_GPIO_PIN_MAP(0, 25)
 #endif
 
-// <o> ILI9341_MISO_PIN - Pin number  <0-47>
+// <o> ILI9225_MISO_PIN - Pin number  <0-47>
 
-#ifndef ILI9341_MISO_PIN
-#define ILI9341_MISO_PIN 36
+#ifndef ILI9225_MISO_PIN
+#define ILI9225_MISO_PIN 36
 #endif
 
-// <o> ILI9341_MOSI_PIN - Pin number  <0-47>
+// <o> ILI9225_MOSI_PIN - Pin number  <0-47>
 
-#ifndef ILI9341_MOSI_PIN
-#define ILI9341_MOSI_PIN 41 // Port 1, Pin 9
+#ifndef ILI9225_MOSI_PIN
+#define ILI9225_MOSI_PIN 41 // Port 1, Pin 9
 #endif
 
-// <o> ILI9341_SS_PIN - Pin number  <0-47>
+// <o> ILI9225_SS_PIN - Pin number  <0-47>
 
-#ifndef ILI9341_SS_PIN
-#define ILI9341_SS_PIN 32 // Port 1, Pin 0
+#ifndef ILI9225_SS_PIN
+#define ILI9225_SS_PIN 32 // Port 1, Pin 0
 #endif
 
 // </h>
 //==========================================================
 
-// <o> ILI9341_SPI_INSTANCE
+// <o> ILI9225_SPI_INSTANCE
 
 // <0=> 0
 // <1=> 1
 // <2=> 2
 
-#ifndef ILI9341_SPI_INSTANCE
-#define ILI9341_SPI_INSTANCE 3
+#ifndef ILI9225_SPI_INSTANCE
+#define ILI9225_SPI_INSTANCE 3
 #endif
 
-// <o> ILI9341_DC_PIN - Pin number  <0-47>
+// <o> ILI9225_DC_PIN - Pin number  <0-47>
 
-#ifndef ILI9341_DC_PIN
-#define ILI9341_DC_PIN 11
+#ifndef ILI9225_DC_PIN
+#define ILI9225_DC_PIN 11
 #endif
 
-// <o> ILI9341_HEIGHT - ILI9341 height  <0-320>
+// <o> ILI9225_HEIGHT - ILI9225 height  <0-220>
 
-#ifndef ILI9341_HEIGHT
-#define ILI9341_HEIGHT 220
+#ifndef ILI9225_HEIGHT
+#define ILI9225_HEIGHT 220
 #endif
 
-// <o> ILI9341_WIDTH - ILI9341 width  <0-240>
+// <o> ILI9225_WIDTH - ILI9225 width  <0-176>
 
-#ifndef ILI9341_WIDTH
-#define ILI9341_WIDTH 176
+#ifndef ILI9225_WIDTH
+#define ILI9225_WIDTH 176
 #endif
 
-// <o> ILI9341_IRQ_PRIORITY  - Interrupt priority
+// <o> ILI9225_IRQ_PRIORITY  - Interrupt priority
 
 // <i> Priorities 0,2 (nRF51) and 0,1,4,5 (nRF52) are reserved for SoftDevice
 // <0=> 0 (highest)
@@ -11512,8 +11512,8 @@
 // <6=> 6
 // <7=> 7
 
-#ifndef ILI9341_IRQ_PRIORITY
-#define ILI9341_IRQ_PRIORITY 3
+#ifndef ILI9225_IRQ_PRIORITY
+#define ILI9225_IRQ_PRIORITY 3
 #endif
 
 // </e>
