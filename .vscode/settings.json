@@ -3,6 +3,8 @@
     "github.gitAuthentication": false,
     "C_Cpp.dimInactiveRegions": true,
     "files.associations": {
-        "nordic_common.h": "c"
-    }
+        "nordic_common.h": "c",
+        "nrf_gfx.h": "c"
+    },
+    "python.formatting.provider": "black"
 }

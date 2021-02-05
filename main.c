@@ -804,8 +804,8 @@ int main(void)
 	app_usbd_class_inst_t const *class_cdc_acm = app_usbd_cdc_acm_class_inst_get(&m_app_cdc_acm);
 	app_usbd_class_append(class_cdc_acm);
 #endif
-	nrf_cal_init();
-	nrf_cal_set_callback(print_current_time, 10);
+	//nrf_cal_init();
+	//nrf_cal_set_callback(print_current_time, 10);
 
 	uart_init();
 	app_timer_init();
@@ -821,8 +821,6 @@ int main(void)
 	//printf("\r\nClock started\n");
 
 	screen_clear();
-
-	draw_ui();
 
 	(void)set_enabled;
 
@@ -842,12 +840,21 @@ int main(void)
 	app_usbd_power_events_enable();
 #endif
 
-	nrf_delay_ms(1000);
-
 	start_advertising();
 
 	float trip = 12.4f;
 	float speed = 10.1f;
+
+	ili9225_clear();
+
+	draw_ui();
+	// charging_basic();
+
+	screen_clear();
+
+	uint32_t time;
+	uint32_t time_diff;
+	uint8_t buffer[10];
 
 	for (;;)
 	{
@@ -871,19 +878,34 @@ int main(void)
 			packet_process_byte(byte, PACKET_VESC);
 		}
 
-		char buffer[10];
+		ili9225_clear();
 
-		trip += 0.1;
-		sprintf(buffer, "%.1f", trip);
-		tft_util_draw_number(buffer, 0, 130, COLOR_WHITE, COLOR_BLACK, 2, 6);
+		time_diff = app_timer_cnt_diff_compute(app_timer_cnt_get(), time);
+		sprintf(buffer, "%u", time_diff);
+		text_print(5, 5, COLOR_WHITE, buffer);
 
-		speed += 0.1;
-		sprintf(buffer, "%.1f", speed);
-		tft_util_draw_number(buffer, 2, 35, COLOR_WHITE, COLOR_BLACK, 10, 14);
+		float seconds_elapsed = (float)time_diff / (32 * 1000);
+		sprintf(buffer, "%f", seconds_elapsed);
+		text_print(5, 20, COLOR_WHITE, buffer);
 
-		cdc_printf("test");
+		time = app_timer_cnt_get();
 
-		nrf_delay_ms(300);
+		// charging();
+
+		/* 		for (size_t i = 0; i < 1000; i++)
+		{
+			ili9225_pixel_draw(1, 1, COLOR_WHITE);
+		} */
+
+		time_diff = app_timer_cnt_diff_compute(app_timer_cnt_get(), time);
+		sprintf(buffer, "%u", time_diff);
+		text_print(5, 35, COLOR_WHITE, buffer);
+
+		seconds_elapsed = (float)time_diff / (32 * 1000);
+		sprintf(buffer, "%f", seconds_elapsed);
+		text_print(5, 50, COLOR_WHITE, buffer);
+
+		nrf_delay_ms(1000);
 
 		sd_app_evt_wait();
 	}
