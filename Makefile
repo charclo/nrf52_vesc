@@ -18,6 +18,8 @@ CFLAGS += $(build_args)
 # Path to the NRF52 SDK. Change if needed.
 SDK_ROOT := /Users/michael/Documents/nRF5_SDK_17.0.2_d674dde
 
+#blablabla
+
 TARGET_PATH := $(OUTPUT_DIRECTORY)/$(TARGETS).hex
 
 ifeq ($(IS_52832),1)
