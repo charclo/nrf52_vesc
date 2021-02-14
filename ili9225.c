@@ -1,7 +1,5 @@
 #include "sdk_common.h"
 
-#if NRF_MODULE_ENABLED(ILI9225)
-
 #include "nrf_lcd.h"
 #include "nrf_drv_spi.h"
 #include "nrf_delay.h"
@@ -89,9 +87,41 @@ const bool FONT_DIGITS_3x5[10][5][3] = {
 extern const nrf_gfx_font_desc_t orkney_8ptFontInfo;
 static const nrf_gfx_font_desc_t *p_font = &orkney_8ptFontInfo;
 
-uint8_t frame_buffer[176][220] = {0};
+uint8_t frame_buffer[440][176] = {0};
+uint8_t orientation = 2;
+uint8_t _maxY = 220;
+uint8_t _maxX = 176;
 
 static const nrfx_spim_t spi = NRFX_SPIM_INSTANCE(ILI9225_SPI_INSTANCE);
+
+void _swap(uint16_t *a, uint16_t *b)
+{
+    uint16_t w = *a;
+    *a = *b;
+    *b = w;
+}
+
+void orientCoordinates(uint16_t *x1, uint16_t *y1)
+{
+
+    switch (orientation)
+    {
+    case 0: // ok
+        break;
+    case 1: // ok
+        *y1 = _maxY - *y1 - 1;
+        _swap(x1, y1);
+        break;
+    case 2: // ok
+        *x1 = _maxX - *x1 - 1;
+        *y1 = _maxY - *y1 - 1;
+        break;
+    case 3: // ok
+        *x1 = _maxX - *x1 - 1;
+        _swap(x1, y1);
+        break;
+    }
+}
 
 uint16_t setColor(uint8_t red8, uint8_t green8, uint8_t blue8)
 {
@@ -313,7 +343,7 @@ static void command_list(void)
 
 static ret_code_t hardware_init(void)
 {
-    memset(frame_buffer, 0xFF, 176);
+    // memset(frame_buffer, 0xFF, 176);
     ret_code_t err_code;
 
     nrf_gpio_cfg_output(ILI9225_DC_PIN);
@@ -372,7 +402,7 @@ static void ili9225_uninit(void)
 
 void ili9225_rect_draw(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint32_t color)
 {
-    set_addr_window(x, y, x + width - 1, y + height - 1);
+/*     set_addr_window(x, y, x + width - 1, y + height - 1);
 
     const uint8_t data[2] = {color >> 8, color};
 
@@ -382,7 +412,7 @@ void ili9225_rect_draw(uint16_t x, uint16_t y, uint16_t width, uint16_t height, 
     uint32_t i = (height * width + 7) / 8;
 
     /*lint -save -e525 -e616 -e646 */
-    switch ((height * width) % 8)
+/*     switch ((height * width) % 8)
     {
     case 0:
         do
@@ -405,46 +435,76 @@ void ili9225_rect_draw(uint16_t x, uint16_t y, uint16_t width, uint16_t height, 
         } while (--i > 0);
     default:
         break;
-    }
+    } */
     /*lint -restore */
 
-    nrf_gpio_pin_clear(ILI9225_DC_PIN);
+    /*nrf_gpio_pin_clear(ILI9225_DC_PIN); */
+
+    orientCoordinates(&x, &y);
+
+    for (size_t i = 0; i < height; i++)
+    {
+        for (size_t j = 0; j < width; j++)
+        {
+        frame_buffer[(y+i)*2][(x+j)*2] = color >> 8;
+        frame_buffer[(y+i)*2][(x+j)*2+1] = color;
+        }
+    }
 }
 
-uint32_t changing_color = 0x00;
 void ili9225_clear()
 {
-    set_addr_window(0, 0, 176 - 1, 220 - 1);
-
-    // frame buffer
-    uint8_t data[255];
-    memset(data, changing_color, sizeof(data));
+    set_addr_window(0, 0, _maxX - 1, _maxY - 1);
 
     nrf_gpio_pin_set(ILI9225_DC_PIN);
 
-    for (size_t i = 0; i < (220 * 2); i++)
+    for (size_t i = 0; i < (220*2); i++)
     {
-        spi_write(&frame_buffer[0][i], 176);
+        spi_write(&frame_buffer[i][0], 176);
     }
 
     nrf_gpio_pin_clear(ILI9225_DC_PIN);
+
+    memset(frame_buffer, 0x00, 176*440);
+    //changing_color++;
+
+    //nrf_delay_ms(500);
+
+    //memset(frame_buffer[pixel_to_change], 0x11, 176);
+    //memset(frame_buffer[pixel_to_change+1], 0x11, 176);
+
+    //frame_buffer[0][pixel_to_change] = 0x11;
+    //frame_buffer[0][pixel_to_change+1] = 0x11;
+    //pixel_to_change+=;
 }
 
-static void ili9225_draw_line(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint32_t color)
+void ili9225_draw_line(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint32_t color)
 {
-    set_addr_window(x, y, x + width, y + height);
+    //set_addr_window(x, y, x + width, y + height);
 
-    uint16_t buffer_size = width * height * 2;
+    //uint16_t buffer_size = width * height * 2;
 
     // frame buffer
-    uint8_t data[buffer_size];
-    memset(data, color, sizeof(data));
+    //uint8_t data[buffer_size];
+    //memset(data, color, sizeof(data));
 
-    nrf_gpio_pin_set(ILI9225_DC_PIN);
+/*     nrf_gpio_pin_set(ILI9225_DC_PIN);
 
     spi_write(&data, sizeof(data));
 
-    nrf_gpio_pin_clear(ILI9225_DC_PIN);
+    nrf_gpio_pin_clear(ILI9225_DC_PIN); */
+
+    for (size_t i = 0; i < height; i++)
+    {
+        frame_buffer[(y+i)*2][x*2] = color >> 8;
+        frame_buffer[(y+i)*2][x*2+1] = color;
+    }
+
+    for (size_t i = 0; i < width; i++)
+    {
+        frame_buffer[(y)*2][(x+i)*2] = color >> 8;
+        frame_buffer[(y)*2][(x+i)*2+1] = color;
+    }
 }
 
 static void ili9225_rotation_set(nrf_lcd_rotation_t rotation)
@@ -491,7 +551,7 @@ float speed = 10.1f;
 void draw_ui()
 {
 
-    // _update_battery_indicator(0.5f, true);
+    //_update_battery_indicator(0.5f, true);
 
     text_print(0, 110, COLOR_WHITE, "TRIP KM     ");
     text_print(0, 175, COLOR_WHITE, "TOTAL KM    ");
@@ -501,7 +561,7 @@ void draw_ui()
     text_print(145, 21, COLOR_WHITE, "KMH");
 
     char temperature[] = {'2', '0', '.', '3'};
-    // tft_util_draw_number(temperature, 4, 21, COLOR_WHITE, COLOR_BLACK, 2, 2);
+    tft_util_draw_number(temperature, 4, 21, COLOR_WHITE, COLOR_BLACK, 2, 2);
     circle_draw(37, 22, 1, COLOR_WHITE, false);
     text_print(40, 21, COLOR_WHITE, "C");
 
@@ -523,6 +583,9 @@ void draw_ui()
     float voltage = 39.9f;
     sprintf(buffer, "%.1f", voltage);
     tft_util_draw_number(buffer, 105, 190, COLOR_WHITE, COLOR_BLACK, 2, 6);
+
+    speed+=0.1;
+    trip+=0.1;
 }
 
 void circle_draw(uint8_t x, uint8_t y, uint8_t radius, uint16_t color, bool fill)
@@ -530,109 +593,6 @@ void circle_draw(uint8_t x, uint8_t y, uint8_t radius, uint16_t color, bool fill
     nrf_gfx_circle_t my_circle = NRF_GFX_CIRCLE(x, y, radius);
     int error = nrf_gfx_circle_draw(&nrf_lcd_ili9225, &my_circle, color, fill);
     APP_ERROR_CHECK(error);
-}
-
-void draw_options()
-{
-    nrf_gfx_display(&nrf_lcd_ili9225);
-
-    text_print(5, 10, COLOR_WHITE, "Option 1");
-    text_print(5, 30, COLOR_WHITE, "Option 2");
-    text_print(5, 50, COLOR_WHITE, "Option 3");
-    text_print(5, 70, COLOR_WHITE, "Option 4");
-}
-
-void tft_util_draw_digit(uint8_t digit, uint8_t x, uint8_t y,
-                         uint16_t fg_color, uint16_t bg_color, uint8_t magnify)
-{
-    for (int xx = 0; xx < 3; xx++)
-    {
-        for (int yy = 0; yy < 5; yy++)
-        {
-            uint16_t color = FONT_DIGITS_3x5[digit][yy][xx] ? fg_color : bg_color;
-            nrf_gfx_rect_t my_rect = NRF_GFX_RECT(x + xx * magnify,
-                                                  y + yy * magnify,
-                                                  magnify,
-                                                  magnify);
-            APP_ERROR_CHECK(nrf_gfx_rect_draw(&nrf_lcd_ili9225, &my_rect, 1, color, true));
-        }
-    }
-}
-
-void tft_util_draw_number(
-    char *number, uint8_t x, uint8_t y,
-    uint16_t fg_color, uint16_t bg_color, uint8_t spacing, uint8_t magnify)
-{
-    int cursor_x = x;
-    int number_len = strlen(number);
-    for (int i = 0; i < number_len; i++)
-    {
-        char ch = number[i];
-        if (ch >= '0' && ch <= '9')
-        {
-            tft_util_draw_digit(ch - '0', cursor_x, y, fg_color, bg_color, magnify);
-            cursor_x += 3 * magnify + spacing;
-        }
-        else if (ch == '.')
-        {
-            nrf_gfx_rect_t my_rect = NRF_GFX_RECT(cursor_x,
-                                                  y + 4 * magnify,
-                                                  magnify,
-                                                  magnify);
-            APP_ERROR_CHECK(nrf_gfx_rect_draw(&nrf_lcd_ili9225, &my_rect, 1, fg_color, true));
-            cursor_x += magnify + spacing;
-            /*         } else if (ch == '-') {
-            tft->fillRectangle(cursor_x, y, cursor_x + 3 * magnify - 1, y + 5 * magnify - 1, bg_color);
-            tft->fillRectangle(cursor_x, y + 2 * magnify, cursor_x + 3 * magnify - 1, y + 3 * magnify - 1, fg_color);
-            cursor_x += 3 * magnify + spacing; */
-            /*         } else if (ch == ' ') {
-            tft->fillRectangle(cursor_x, y, cursor_x + 3 * magnify - 1, y + 5 * magnify - 1, bg_color);
-            cursor_x += 3 * magnify + spacing; */
-        }
-    }
-}
-
-// Remember how many cells are currently filled so that we can update the indicators more efficiently.
-uint8_t _battery_cells_filled = 0;
-
-void _update_battery_indicator(float battery_percent, bool redraw)
-{
-    int width = 15;
-    int space = 2;
-    int cell_count = 10;
-
-    nrf_gfx_rect_t my_rect = NRF_GFX_RECT(ILI9225_WIDTH / 2,
-                                          ILI9225_HEIGHT / ILI9225_WIDTH,
-                                          ILI9225_HEIGHT,
-                                          BORDER);
-
-    int cells_to_fill = round(battery_percent * cell_count);
-    for (int i = 0; i < cell_count; i++)
-    {
-        bool is_filled = (i < _battery_cells_filled);
-        bool should_be_filled = (i < cells_to_fill);
-        if (should_be_filled != is_filled || redraw)
-        {
-            int x = (i) * (width + space);
-            uint8_t green = (uint8_t)(255.0 / (cell_count - 1) * i);
-            uint8_t red = 255 - green;
-            uint16_t color = setColor(red, green, 0);
-            my_rect.x = x + 4;
-            my_rect.y = 1;
-            my_rect.width = 15;
-            my_rect.height = 15;
-            APP_ERROR_CHECK(nrf_gfx_rect_draw(&nrf_lcd_ili9225, &my_rect, 1, color, true));
-            if (!should_be_filled)
-            {
-                my_rect.x = x + 5;
-                my_rect.y = 2;
-                my_rect.width = 13;
-                my_rect.height = 13;
-                APP_ERROR_CHECK(nrf_gfx_rect_draw(&nrf_lcd_ili9225, &my_rect, 1, COLOR_BLACK, true));
-            }
-        }
-    }
-    _battery_cells_filled = cells_to_fill;
 }
 
 void gfx_initialization(void)
@@ -647,11 +607,11 @@ uint16_t sin_table[176] = {
     9, 10, 10, 11, 12, 12, 13, 14, 14, 15, 16, 16, 17, 18, 19, 19};
 
 uint16_t base_y = 100;
-uint32_t charging_color = COLOR_DARKGREEN;
+// uint32_t charging_color = COLOR_DARKGREEN;
 
 void charging_basic(void)
 {
-    ili9225_rect_draw(0, 0, 176, ILI9225_HEIGHT, charging_color);
+    // ili9225_rect_draw(10, 10, 10, 10, COLOR_DARKGREEN);
     text_print(70, 140, COLOR_WHITE, "waarom 68%");
 }
 
@@ -668,7 +628,7 @@ void charging(void)
         uint16_t height = sin_table[i_offset];
         if (height > 0)
         {
-            ili9225_draw_line(i, start_y, 1, height, charging_color);
+            ili9225_draw_line(i, start_y, 1, height, COLOR_DARKGREEN);
         }
 
         height = 40 - sin_table[i_offset];
@@ -681,41 +641,13 @@ void charging(void)
     offset += 1;
 }
 
-void _swap(uint16_t *a, uint16_t *b)
-{
-    uint16_t w = *a;
-    *a = *b;
-    *b = w;
-}
-
-uint8_t orientation = 0;
-uint8_t _maxY = 220;
-uint8_t _maxX = 176;
-
-void orientCoordinates(uint16_t *x1, uint16_t *y1)
-{
-
-    switch (orientation)
-    {
-    case 0: // ok
-        break;
-    case 1: // ok
-        *y1 = _maxY - *y1 - 1;
-        _swap(x1, y1);
-        break;
-    case 2: // ok
-        *x1 = _maxX - *x1 - 1;
-        *y1 = _maxY - *y1 - 1;
-        break;
-    case 3: // ok
-        *x1 = _maxX - *x1 - 1;
-        _swap(x1, y1);
-        break;
-    }
-}
-
 void ili9225_pixel_draw(uint16_t x, uint16_t y, uint32_t color)
 {
+    orientCoordinates(&x, &y);
+
+    frame_buffer[y*2][x*2] = color >> 8;
+    frame_buffer[y*2][x*2+1] = color;
+
 
     /*     if ((x >= 176) || (y >= 220))
         return;
@@ -732,7 +664,7 @@ void ili9225_pixel_draw(uint16_t x, uint16_t y, uint32_t color)
 
     nrf_gpio_pin_clear(ILI9225_DC_PIN); */
 
-    write_command(ILI9225_RAM_ADDR_SET1);
+/*     write_command(ILI9225_RAM_ADDR_SET1);
     write_data(x >> 8);
     write_data(x);
     write_command(ILI9225_RAM_ADDR_SET2);
@@ -740,7 +672,7 @@ void ili9225_pixel_draw(uint16_t x, uint16_t y, uint32_t color)
     write_data(y);
     write_command(ILI9225_GRAM_DATA_REG);
     write_data(color >> 8);
-    write_data(color);
+    write_data(color); */
 }
 
-#endif // NRF_MODULE_ENABLED(ILI9225)
+// endif // NRF_MODULE_ENABLED(ILI9225)

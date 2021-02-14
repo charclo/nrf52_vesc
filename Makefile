@@ -16,8 +16,8 @@ endif
 CFLAGS += $(build_args)
 
 # Path to the NRF52 SDK. Change if needed.
-#SDK_ROOT := /Users/michael/Downloads/DeviceDownload/nRF5_SDK_17.0.2_d674dde
-SDK_ROOT := C:/Users/pxf8601/Downloads/DeviceDownload/nRF5SDK153059ac345/nRF5_SDK_15.3.0_59ac345
+SDK_ROOT := /Users/michael/Documents/nRF5_SDK_17.0.2_d674dde
+#SDK_ROOT := C:/Users/pxf8601/Downloads/DeviceDownload/nRF5SDK153059ac345/nRF5_SDK_15.3.0_59ac345
 
 TARGET_PATH := $(OUTPUT_DIRECTORY)/$(TARGETS).hex
 

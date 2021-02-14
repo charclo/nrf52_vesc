@@ -4,7 +4,7 @@
             "name": "nRF SDK 16.0.0",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/Users/michael/Downloads/DeviceDownload/nRF5_SDK_17.0.2_d674dde/**",
+                "/Users/michael/Documents/nRF5_SDK_17.0.2_d674dde/**",
                 "C:/Users/pxf8601/Downloads/DeviceDownload/nRF5SDK153059ac345/nRF5_SDK_15.3.0_59ac345/**"
             ],
             "forcedInclude": [
@@ -19,7 +19,7 @@
                 "BL_SETTINGS_ACCESS_ONLY",
                 "RF_DFU_TRANSPORT_BLE=1"
             ],
-            "compilerPath": "C:/Program Files (x86)/GNU Tools Arm Embedded/7 2018-q2-update/bin/arm-none-eabi-gcc.exe",
+            "compilerPath": "arm-none-eabi-gcc",
             "cStandard": "c11",
             "cppStandard": "c++17",
             "intelliSenseMode": "clang-x64"

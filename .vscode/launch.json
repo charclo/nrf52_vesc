@@ -10,7 +10,7 @@
       "name": "Debug J-Link",
       "cwd": "${workspaceFolder}",
       "executable": "${workspaceFolder}/_build/nrf52840_xxaa.out",
-      "serverpath": "C:/Program Files (x86)/SEGGER/JLink/JLinkGDBServerCL.exe", 
+      "serverpath": "JLinkGDBServerCL", 
       "servertype": "jlink",
       "device": "nrf52",
       "interface": "swd",

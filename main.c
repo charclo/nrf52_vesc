@@ -820,7 +820,7 @@ int main(void)
 
 	//printf("\r\nClock started\n");
 
-	screen_clear();
+	// screen_clear();
 
 	(void)set_enabled;
 
@@ -845,16 +845,18 @@ int main(void)
 	float trip = 12.4f;
 	float speed = 10.1f;
 
-	ili9225_clear();
+	// ili9225_clear();
 
-	draw_ui();
-	// charging_basic();
+	// draw_ui();
+	charging_basic();
 
-	screen_clear();
+	// screen_clear();
 
 	uint32_t time;
 	uint32_t time_diff;
 	uint8_t buffer[10];
+
+	bool on = false;
 
 	for (;;)
 	{
@@ -880,7 +882,7 @@ int main(void)
 
 		ili9225_clear();
 
-		time_diff = app_timer_cnt_diff_compute(app_timer_cnt_get(), time);
+/* 		time_diff = app_timer_cnt_diff_compute(app_timer_cnt_get(), time);
 		sprintf(buffer, "%u", time_diff);
 		text_print(5, 5, COLOR_WHITE, buffer);
 
@@ -888,7 +890,7 @@ int main(void)
 		sprintf(buffer, "%f", seconds_elapsed);
 		text_print(5, 20, COLOR_WHITE, buffer);
 
-		time = app_timer_cnt_get();
+		time = app_timer_cnt_get(); */
 
 		// charging();
 
@@ -897,13 +899,33 @@ int main(void)
 			ili9225_pixel_draw(1, 1, COLOR_WHITE);
 		} */
 
-		time_diff = app_timer_cnt_diff_compute(app_timer_cnt_get(), time);
+/* 		time_diff = app_timer_cnt_diff_compute(app_timer_cnt_get(), time);
 		sprintf(buffer, "%u", time_diff);
 		text_print(5, 35, COLOR_WHITE, buffer);
 
 		seconds_elapsed = (float)time_diff / (32 * 1000);
 		sprintf(buffer, "%f", seconds_elapsed);
-		text_print(5, 50, COLOR_WHITE, buffer);
+		text_print(5, 50, COLOR_WHITE, buffer); */
+
+		// screen_clear();
+		if(on){
+			ili9225_pixel_draw(100, 100, COLOR_BLACK);
+			on = false;
+		}
+
+		else{
+			ili9225_pixel_draw(100, 100, COLOR_WHITE);
+			on = true;
+		}
+
+		charging_basic();
+
+/* 		ili9225_draw_line(102, 20, 1, 100, COLOR_BLUE);
+		ili9225_draw_line(10, 140, 100, 1, COLOR_YELLOW);
+
+		ili9225_rect_draw(10, 10, 10, 10, COLOR_VIOLET); */
+
+		draw_ui();
 
 		nrf_delay_ms(1000);
 
