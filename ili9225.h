@@ -102,21 +102,7 @@ enum autoIncMode_t
 
 #define BORDER 2
 
-void text_print(uint8_t x, uint8_t y, uint16_t color, const char *text);
-void screen_clear(void);
 void ili9225_clear();
-void draw_ui();
-void draw_options();
-void gfx_initialization(void);
-void tft_util_draw_digit(uint8_t digit, uint8_t x, uint8_t y,
-                         uint16_t fg_color, uint16_t bg_color, uint8_t magnify);
-void tft_util_draw_number(
-    char *number, uint8_t x, uint8_t y,
-    uint16_t fg_color, uint16_t bg_color, uint8_t spacing, uint8_t magnify);
-void _update_battery_indicator(float battery_percent, bool redraw);
-void circle_draw(uint8_t x, uint8_t y, uint8_t radius, uint16_t color, bool fill);
-void charging_basic(void);
-void charging(void);
 void ili9225_pixel_draw(uint16_t x, uint16_t y, uint32_t color);
 void ili9225_rect_draw(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint32_t color);
 void ili9225_draw_line(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint32_t color);

@@ -12,78 +12,6 @@
 
 #define RST_PIN 12
 
-const bool FONT_DIGITS_3x5[10][5][3] = {
-    {
-        {1, 1, 1},
-        {1, 0, 1},
-        {1, 0, 1},
-        {1, 0, 1},
-        {1, 1, 1},
-    },
-    {
-        {0, 0, 1},
-        {0, 0, 1},
-        {0, 0, 1},
-        {0, 0, 1},
-        {0, 0, 1},
-    },
-    {
-        {1, 1, 1},
-        {0, 0, 1},
-        {1, 1, 1},
-        {1, 0, 0},
-        {1, 1, 1},
-    },
-    {
-        {1, 1, 1},
-        {0, 0, 1},
-        {0, 1, 1},
-        {0, 0, 1},
-        {1, 1, 1},
-    },
-    {
-        {1, 0, 1},
-        {1, 0, 1},
-        {1, 1, 1},
-        {0, 0, 1},
-        {0, 0, 1},
-    },
-    {
-        {1, 1, 1},
-        {1, 0, 0},
-        {1, 1, 1},
-        {0, 0, 1},
-        {1, 1, 1},
-    },
-    {
-        {1, 1, 1},
-        {1, 0, 0},
-        {1, 1, 1},
-        {1, 0, 1},
-        {1, 1, 1},
-    },
-    {
-        {1, 1, 1},
-        {0, 0, 1},
-        {0, 0, 1},
-        {0, 0, 1},
-        {0, 0, 1},
-    },
-    {
-        {1, 1, 1},
-        {1, 0, 1},
-        {1, 1, 1},
-        {1, 0, 1},
-        {1, 1, 1},
-    },
-    {
-        {1, 1, 1},
-        {1, 0, 1},
-        {1, 1, 1},
-        {0, 0, 1},
-        {1, 1, 1},
-    }};
-
 extern const nrf_gfx_font_desc_t orkney_8ptFontInfo;
 static const nrf_gfx_font_desc_t *p_font = &orkney_8ptFontInfo;
 
@@ -380,26 +308,6 @@ static void ili9225_uninit(void)
     // nrf_drv_spi_uninit(&spi);
 }
 
-/* static void ili9225_rect_draw(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint32_t color)
-{
-    set_addr_window(x, y, width - 1, height - 1);
-
-    uint8_t frame_length = 255;
-    uint8_t data[frame_length];
-    memset(data, 0xFF, sizeof(data));
-
-    nrf_gpio_pin_set(ILI9225_DC_PIN);
-
-    int32_t number_of_frames = (float)(width * height * 2) / 255.0f;
-
-    /     for (size_t i = 0; i < number_of_frames + 1; i++)
-    {
-        APP_ERROR_CHECK(nrf_drv_spi_transfer(&spi, &data, sizeof(data), NULL, 0));
-    } /
-
-/    nrf_gpio_pin_clear(ILI9225_DC_PIN);
-} */
-
 void ili9225_rect_draw(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint32_t color)
 {
 /*     set_addr_window(x, y, x + width - 1, y + height - 1);
@@ -466,16 +374,6 @@ void ili9225_clear()
     nrf_gpio_pin_clear(ILI9225_DC_PIN);
 
     memset(frame_buffer, 0x00, 176*440);
-    //changing_color++;
-
-    //nrf_delay_ms(500);
-
-    //memset(frame_buffer[pixel_to_change], 0x11, 176);
-    //memset(frame_buffer[pixel_to_change+1], 0x11, 176);
-
-    //frame_buffer[0][pixel_to_change] = 0x11;
-    //frame_buffer[0][pixel_to_change+1] = 0x11;
-    //pixel_to_change+=;
 }
 
 void ili9225_draw_line(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint32_t color)
@@ -534,112 +432,6 @@ const nrf_lcd_t nrf_lcd_ili9225 = {
     .lcd_display_invert = ili9225_display_invert,
     .p_lcd_cb = &ili9225_cb};
 
-void text_print(uint8_t x, uint8_t y, uint16_t color, const char *text)
-{
-    nrf_gfx_point_t text_start = NRF_GFX_POINT(x, y);
-    APP_ERROR_CHECK(nrf_gfx_print(&nrf_lcd_ili9225, &text_start, color, text, p_font, true));
-}
-
-void screen_clear(void)
-{
-    nrf_gfx_screen_fill(&nrf_lcd_ili9225, COLOR_BLACK);
-}
-
-float trip = 12.4f;
-float speed = 10.1f;
-
-void draw_ui()
-{
-
-    //_update_battery_indicator(0.5f, true);
-
-    text_print(0, 110, COLOR_WHITE, "TRIP KM     ");
-    text_print(0, 175, COLOR_WHITE, "TOTAL KM    ");
-    text_print(110, 110, COLOR_WHITE, "WATTS       ");
-    text_print(110, 175, COLOR_WHITE, "BATT V");
-
-    text_print(145, 21, COLOR_WHITE, "KMH");
-
-    char temperature[] = {'2', '0', '.', '3'};
-    tft_util_draw_number(temperature, 4, 21, COLOR_WHITE, COLOR_BLACK, 2, 2);
-    circle_draw(37, 22, 1, COLOR_WHITE, false);
-    text_print(40, 21, COLOR_WHITE, "C");
-
-    char buffer[10];
-    sprintf(buffer, "%.1f", speed);
-    tft_util_draw_number(buffer, 2, 35, COLOR_WHITE, COLOR_BLACK, 10, 14);
-
-    sprintf(buffer, "%.1f", trip);
-    tft_util_draw_number(buffer, 0, 130, COLOR_WHITE, COLOR_BLACK, 2, 6);
-
-    float watts = 245.3f;
-    sprintf(buffer, "%.1f", watts);
-    tft_util_draw_number(buffer, 90, 130, COLOR_WHITE, COLOR_BLACK, 2, 6);
-
-    float total = 108.4f;
-    sprintf(buffer, "%.1f", total);
-    tft_util_draw_number(buffer, 0, 190, COLOR_WHITE, COLOR_BLACK, 2, 6);
-
-    float voltage = 39.9f;
-    sprintf(buffer, "%.1f", voltage);
-    tft_util_draw_number(buffer, 105, 190, COLOR_WHITE, COLOR_BLACK, 2, 6);
-
-    speed+=0.1;
-    trip+=0.1;
-}
-
-void circle_draw(uint8_t x, uint8_t y, uint8_t radius, uint16_t color, bool fill)
-{
-    nrf_gfx_circle_t my_circle = NRF_GFX_CIRCLE(x, y, radius);
-    int error = nrf_gfx_circle_draw(&nrf_lcd_ili9225, &my_circle, color, fill);
-    APP_ERROR_CHECK(error);
-}
-
-void gfx_initialization(void)
-{
-    APP_ERROR_CHECK(nrf_gfx_init(&nrf_lcd_ili9225));
-}
-
-uint16_t sin_table[176] = {
-    20, 21, 21, 22, 23, 24, 24, 25, 26, 26, 27, 28, 28, 29, 30, 30,
-    31, 31, 32, 33, 33, 34, 34, 35, 35, 36, 36, 36, 37, 37, 38, 38, 38, 38, 39, 39, 39, 39, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 39, 39, 39, 39, 38, 38, 38, 38, 37, 37, 36, 36, 36, 35, 35, 34, 34, 33, 33, 32, 31, 31, 30, 30, 29, 28, 28, 27, 26, 26,
-    25, 24, 24, 23, 22, 21, 21, 20, 19, 19, 18, 17, 16, 16, 15, 14, 14, 13, 12, 12, 11, 10, 10, 9, 9, 8, 7, 7, 6, 6, 5, 5, 4, 4, 4, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 4, 4, 4, 5, 5, 6, 6, 7, 7, 8, 9,
-    9, 10, 10, 11, 12, 12, 13, 14, 14, 15, 16, 16, 17, 18, 19, 19};
-
-uint16_t base_y = 100;
-// uint32_t charging_color = COLOR_DARKGREEN;
-
-void charging_basic(void)
-{
-    // ili9225_rect_draw(10, 10, 10, 10, COLOR_DARKGREEN);
-    text_print(70, 140, COLOR_WHITE, "waarom 68%");
-}
-
-uint16_t offset = 0;
-uint8_t buffer[10];
-uint32_t time;
-
-void charging(void)
-{
-    for (uint16_t i = 0; i < ILI9225_WIDTH; i++)
-    {
-        uint16_t i_offset = (i + offset) % 176;
-        uint16_t start_y = base_y - sin_table[i_offset];
-        uint16_t height = sin_table[i_offset];
-        if (height > 0)
-        {
-            ili9225_draw_line(i, start_y, 1, height, COLOR_DARKGREEN);
-        }
-
-        height = 40 - sin_table[i_offset];
-        if (height > 0)
-        {
-            ili9225_draw_line(i, base_y - 40, 1, height, COLOR_BLUE);
-        }
-    }
-
-    offset += 1;
-}
 
 void ili9225_pixel_draw(uint16_t x, uint16_t y, uint32_t color)
 {

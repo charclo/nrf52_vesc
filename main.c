@@ -816,7 +816,7 @@ int main(void)
 	services_init();
 	advertising_init();
 	conn_params_init();
-	gfx_initialization();
+	APP_ERROR_CHECK(nrf_gfx_init(&nrf_lcd_ili9225));
 
 	//printf("\r\nClock started\n");
 

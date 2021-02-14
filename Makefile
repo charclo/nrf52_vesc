@@ -123,7 +123,8 @@ SRC_FILES += \
   sdk_mod/nrf_esb.c \
   esb_timeslot.c \
   ili9225.c \
-  nrf_calendar.c
+  nrf_calendar.c \
+  ui.c
 
 
 # Include folders common to all targets
