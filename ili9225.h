@@ -100,8 +100,6 @@ enum autoIncMode_t
 #define COLOR_SNOW 0xFFDF        /* 255, 250, 250 */
 #define COLOR_YELLOW 0xFFE0      /* 255, 255,   0 */
 
-#define BORDER 2
-
 void ili9225_clear();
 void ili9225_pixel_draw(uint16_t x, uint16_t y, uint32_t color);
 void ili9225_rect_draw(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint32_t color);

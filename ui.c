@@ -3,7 +3,11 @@
 #include "nrf_gfx.h"
 #include "ili9225.h"
 
+#define BORDER 2
+
 extern const nrf_lcd_t nrf_lcd_ili9225;
+extern const nrf_gfx_font_desc_t orkney_8ptFontInfo;
+static const nrf_gfx_font_desc_t *p_font = &orkney_8ptFontInfo;
 
 const bool FONT_DIGITS_3x5[10][5][3] = {
     {
@@ -76,6 +80,39 @@ const bool FONT_DIGITS_3x5[10][5][3] = {
         {0, 0, 1},
         {1, 1, 1},
     }};
+// Remember how many cells are currently filled so that we can update the indicators more efficiently.
+uint8_t _battery_cells_filled = 0;
+float trip = 12.4f;
+float speed = 10.1f;
+uint16_t offset = 0;
+uint8_t buffer[10];
+uint32_t time;
+uint16_t sin_table[176] = {
+    20, 21, 21, 22, 23, 24, 24, 25, 26, 26, 27, 28, 28, 29, 30, 30,
+    31, 31, 32, 33, 33, 34, 34, 35, 35, 36, 36, 36, 37, 37, 38, 38, 38, 38, 39, 39, 39, 39, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 39, 39, 39, 39, 38, 38, 38, 38, 37, 37, 36, 36, 36, 35, 35, 34, 34, 33, 33, 32, 31, 31, 30, 30, 29, 28, 28, 27, 26, 26,
+    25, 24, 24, 23, 22, 21, 21, 20, 19, 19, 18, 17, 16, 16, 15, 14, 14, 13, 12, 12, 11, 10, 10, 9, 9, 8, 7, 7, 6, 6, 5, 5, 4, 4, 4, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 4, 4, 4, 5, 5, 6, 6, 7, 7, 8, 9,
+    9, 10, 10, 11, 12, 12, 13, 14, 14, 15, 16, 16, 17, 18, 19, 19};
+uint16_t base_y = 100;
+// uint32_t charging_color = COLOR_DARKGREEN;
+
+
+void text_print(uint8_t x, uint8_t y, uint16_t color, const char *text)
+{
+    nrf_gfx_point_t text_start = NRF_GFX_POINT(x, y);
+    APP_ERROR_CHECK(nrf_gfx_print(&nrf_lcd_ili9225, &text_start, color, text, p_font, true));
+}
+
+void circle_draw(uint8_t x, uint8_t y, uint8_t radius, uint16_t color, bool fill)
+{
+    nrf_gfx_circle_t my_circle = NRF_GFX_CIRCLE(x, y, radius);
+    int error = nrf_gfx_circle_draw(&nrf_lcd_ili9225, &my_circle, color, fill);
+    APP_ERROR_CHECK(error);
+}
+
+void screen_clear(void)
+{
+    nrf_gfx_screen_fill(&nrf_lcd_ili9225, COLOR_BLACK);
+}
 
 void draw_options()
 {
@@ -137,9 +174,6 @@ void tft_util_draw_number(
     }
 }
 
-// Remember how many cells are currently filled so that we can update the indicators more efficiently.
-uint8_t _battery_cells_filled = 0;
-
 void _update_battery_indicator(float battery_percent, bool redraw)
 {
     int width = 15;
@@ -180,31 +214,9 @@ void _update_battery_indicator(float battery_percent, bool redraw)
     _battery_cells_filled = cells_to_fill;
 }
 
-void text_print(uint8_t x, uint8_t y, uint16_t color, const char *text)
-{
-    nrf_gfx_point_t text_start = NRF_GFX_POINT(x, y);
-    APP_ERROR_CHECK(nrf_gfx_print(&nrf_lcd_ili9225, &text_start, color, text, p_font, true));
-}
-
-void circle_draw(uint8_t x, uint8_t y, uint8_t radius, uint16_t color, bool fill)
-{
-    nrf_gfx_circle_t my_circle = NRF_GFX_CIRCLE(x, y, radius);
-    int error = nrf_gfx_circle_draw(&nrf_lcd_ili9225, &my_circle, color, fill);
-    APP_ERROR_CHECK(error);
-}
-
-void screen_clear(void)
-{
-    nrf_gfx_screen_fill(&nrf_lcd_ili9225, COLOR_BLACK);
-}
-
-float trip = 12.4f;
-float speed = 10.1f;
-
 void draw_ui()
 {
-
-    //_update_battery_indicator(0.5f, true);
+    _update_battery_indicator(0.7f, true);
 
     text_print(0, 110, COLOR_WHITE, "TRIP KM     ");
     text_print(0, 175, COLOR_WHITE, "TOTAL KM    ");
@@ -241,25 +253,11 @@ void draw_ui()
     trip+=0.1;
 }
 
-
-uint16_t sin_table[176] = {
-    20, 21, 21, 22, 23, 24, 24, 25, 26, 26, 27, 28, 28, 29, 30, 30,
-    31, 31, 32, 33, 33, 34, 34, 35, 35, 36, 36, 36, 37, 37, 38, 38, 38, 38, 39, 39, 39, 39, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 39, 39, 39, 39, 38, 38, 38, 38, 37, 37, 36, 36, 36, 35, 35, 34, 34, 33, 33, 32, 31, 31, 30, 30, 29, 28, 28, 27, 26, 26,
-    25, 24, 24, 23, 22, 21, 21, 20, 19, 19, 18, 17, 16, 16, 15, 14, 14, 13, 12, 12, 11, 10, 10, 9, 9, 8, 7, 7, 6, 6, 5, 5, 4, 4, 4, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 4, 4, 4, 5, 5, 6, 6, 7, 7, 8, 9,
-    9, 10, 10, 11, 12, 12, 13, 14, 14, 15, 16, 16, 17, 18, 19, 19};
-
-uint16_t base_y = 100;
-// uint32_t charging_color = COLOR_DARKGREEN;
-
 void charging_basic(void)
 {
-    // ili9225_rect_draw(10, 10, 10, 10, COLOR_DARKGREEN);
-    text_print(70, 140, COLOR_WHITE, "waarom 68%");
+    ili9225_rect_draw(0, 100, 176, 120, COLOR_DARKGREEN);
+    text_print(70, 140, COLOR_WHITE, "68%");
 }
-
-uint16_t offset = 0;
-uint8_t buffer[10];
-uint32_t time;
 
 void charging(void)
 {

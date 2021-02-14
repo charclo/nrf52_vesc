@@ -12,9 +12,6 @@
 
 #define RST_PIN 12
 
-extern const nrf_gfx_font_desc_t orkney_8ptFontInfo;
-static const nrf_gfx_font_desc_t *p_font = &orkney_8ptFontInfo;
-
 uint8_t frame_buffer[440][176] = {0};
 uint8_t orientation = 2;
 uint8_t _maxY = 220;
@@ -354,8 +351,8 @@ void ili9225_rect_draw(uint16_t x, uint16_t y, uint16_t width, uint16_t height, 
     {
         for (size_t j = 0; j < width; j++)
         {
-        frame_buffer[(y+i)*2][(x+j)*2] = color >> 8;
-        frame_buffer[(y+i)*2][(x+j)*2+1] = color;
+        frame_buffer[(y-i)*2][(x-j)*2] = color >> 8;
+        frame_buffer[(y-i)*2][(x-j)*2+1] = color;
         }
     }
 }
@@ -392,16 +389,18 @@ void ili9225_draw_line(uint16_t x, uint16_t y, uint16_t width, uint16_t height, 
 
     nrf_gpio_pin_clear(ILI9225_DC_PIN); */
 
+    orientCoordinates(&x, &y);
+
     for (size_t i = 0; i < height; i++)
     {
-        frame_buffer[(y+i)*2][x*2] = color >> 8;
-        frame_buffer[(y+i)*2][x*2+1] = color;
+        frame_buffer[(y-i)*2][x*2] = color >> 8;
+        frame_buffer[(y-i)*2][x*2+1] = color;
     }
 
     for (size_t i = 0; i < width; i++)
     {
-        frame_buffer[(y)*2][(x+i)*2] = color >> 8;
-        frame_buffer[(y)*2][(x+i)*2+1] = color;
+        frame_buffer[(y)*2][(x-i)*2] = color >> 8;
+        frame_buffer[(y)*2][(x-i)*2+1] = color;
     }
 }
 

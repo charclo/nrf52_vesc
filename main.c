@@ -174,6 +174,8 @@ static volatile bool m_is_enabled = true;
 static volatile bool m_uart_error = false;
 static volatile int m_other_comm_disable_time = 0;
 
+extern const nrf_lcd_t nrf_lcd_ili9225;
+
 app_uart_comm_params_t m_uart_comm_params =
 	{
 		.rx_pin_no = UART_RX,
@@ -848,7 +850,7 @@ int main(void)
 	// ili9225_clear();
 
 	// draw_ui();
-	charging_basic();
+	// charging_basic();
 
 	// screen_clear();
 
@@ -909,25 +911,26 @@ int main(void)
 
 		// screen_clear();
 		if(on){
-			ili9225_pixel_draw(100, 100, COLOR_BLACK);
+			ili9225_pixel_draw(10, 100, COLOR_BLACK);
 			on = false;
 		}
 
 		else{
-			ili9225_pixel_draw(100, 100, COLOR_WHITE);
+			ili9225_pixel_draw(10, 100, COLOR_WHITE);
 			on = true;
 		}
 
 		charging_basic();
+		charging();
 
-/* 		ili9225_draw_line(102, 20, 1, 100, COLOR_BLUE);
-		ili9225_draw_line(10, 140, 100, 1, COLOR_YELLOW);
+ 		//ili9225_draw_line(10, 15, 1, 100, COLOR_BLUE);
+		//ili9225_draw_line(10, 140, 100, 1, COLOR_YELLOW);
 
-		ili9225_rect_draw(10, 10, 10, 10, COLOR_VIOLET); */
+		//ili9225_rect_draw(10, 10, 10, 10, COLOR_VIOLET);
 
-		draw_ui();
+		//draw_ui();
 
-		nrf_delay_ms(1000);
+		//nrf_delay_ms(1000);
 
 		sd_app_evt_wait();
 	}
