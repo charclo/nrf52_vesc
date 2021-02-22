@@ -4,7 +4,9 @@
     "C_Cpp.dimInactiveRegions": true,
     "files.associations": {
         "nordic_common.h": "c",
-        "nrf_gfx.h": "c"
+        "nrf_gfx.h": "c",
+        "chrono": "c",
+        "cmath": "c"
     },
     "python.formatting.provider": "black"
 }

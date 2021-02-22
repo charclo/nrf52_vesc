@@ -17,6 +17,21 @@ uint8_t orientation = 2;
 uint8_t _maxY = 220;
 uint8_t _maxX = 176;
 
+ #define BUFFER_SIZE  176
+  
+  typedef struct ArrayList
+  {
+    uint8_t buffer[BUFFER_SIZE];
+  } ArrayList_type;
+
+  ArrayList_type MyArrayList[440];
+
+  //replace 'Channel' below by the specific data channel you want to use,
+  //         for instance 'NRF_SPIM->RXD', 'NRF_TWIM->RXD', etc.
+  //NRF_SPIM3->TXD.MAXCNT = BUFFER_SIZE;
+  //NRF_SPIM->TXD = &MyArrayList;
+  // NRF_SPIM3.PTR = &MyArrayList;
+
 static const nrfx_spim_t spi = NRFX_SPIM_INSTANCE(ILI9225_SPI_INSTANCE);
 
 void _swap(uint16_t *a, uint16_t *b)
@@ -57,7 +72,7 @@ uint16_t setColor(uint8_t red8, uint8_t green8, uint8_t blue8)
 static inline void spi_write(const void *data, size_t size)
 {
     nrfx_spim_xfer_desc_t xfer_desc = NRFX_SPIM_XFER_TX(data, size);
-    nrfx_spim_xfer(&spi, &xfer_desc, 0);
+    nrfx_spim_xfer(&spi, &xfer_desc,  NRFX_SPIM_FLAG_TX_POSTINC);
 }
 
 static inline void write_command(uint8_t c)
@@ -78,28 +93,21 @@ static void set_addr_window(uint16_t x_0, uint16_t y_0, uint16_t x_1, uint16_t y
     ASSERT(y_0 <= y_1);
 
     write_command(ILI9225_ENTRY_MODE);
-    write_data(0x10);
-    write_data(0x00);
+    write_data(0x10); write_data(0x00);
     write_command(ILI9225_HORIZONTAL_WINDOW_ADDR1);
-    write_data(x_1 >> 8);
-    write_data(x_1);
+    write_data(x_1 >> 8); write_data(x_1);
     write_command(ILI9225_HORIZONTAL_WINDOW_ADDR2);
-    write_data(x_0 >> 8);
-    write_data(x_0);
+    write_data(x_0 >> 8); write_data(x_0);
 
     write_command(ILI9225_VERTICAL_WINDOW_ADDR1);
-    write_data(y_1 >> 8);
-    write_data(y_1);
+    write_data(y_1 >> 8); write_data(y_1);
     write_command(ILI9225_VERTICAL_WINDOW_ADDR2);
-    write_data(y_0 >> 8);
-    write_data(y_0);
+    write_data(y_0 >> 8); write_data(y_0);
 
     write_command(ILI9225_RAM_ADDR_SET1);
-    write_data(x_1 >> 8);
-    write_data(x_1);
+    write_data(x_1 >> 8); write_data(x_1);
     write_command(ILI9225_RAM_ADDR_SET2);
-    write_data(y_1 >> 8);
-    write_data(y_1);
+    write_data(y_1 >> 8); write_data(y_1);
 
     write_command(ILI9225_GRAM_DATA_REG);
 }
@@ -118,152 +126,108 @@ static void command_list(void)
 
     /* Set SS bit and direction output from S528 to S1 */
     write_command(ILI9225_POWER_CTRL1);
-    write_data(0x00);
-    write_data(0x00);
+    write_data(0x00); write_data(0x00);
     write_command(ILI9225_POWER_CTRL2);
-    write_data(0x00);
-    write_data(0x00);
+    write_data(0x00); write_data(0x00);
     write_command(ILI9225_POWER_CTRL3);
-    write_data(0x00);
-    write_data(0x00);
+    write_data(0x00); write_data(0x00);
     write_command(ILI9225_POWER_CTRL4);
-    write_data(0x00);
-    write_data(0x00);
+    write_data(0x00); write_data(0x00);
     write_command(ILI9225_POWER_CTRL5);
-    write_data(0x00);
-    write_data(0x00);
+    write_data(0x00); write_data(0x00);
     nrf_delay_ms(40);
 
     // Power-on sequence
     write_command(ILI9225_POWER_CTRL2);
-    write_data(0x00);
-    write_data(0x18);
+    write_data(0x00); write_data(0x18);
     write_command(ILI9225_POWER_CTRL3);
-    write_data(0x61);
-    write_data(0x21);
+    write_data(0x61); write_data(0x21);
     write_command(ILI9225_POWER_CTRL4);
-    write_data(0x00);
-    write_data(0x6F);
+    write_data(0x00); write_data(0x6F);
     write_command(ILI9225_POWER_CTRL5);
-    write_data(0x49);
-    write_data(0x5F);
+    write_data(0x49); write_data(0x5F);
     write_command(ILI9225_POWER_CTRL1);
-    write_data(0x08);
-    write_data(0x00);
+    write_data(0x08); write_data(0x00);
     nrf_delay_ms(10);
 
     write_command(ILI9225_POWER_CTRL2);
-    write_data(0x10);
-    write_data(0x3B);
+    write_data(0x10); write_data(0x3B);
     nrf_delay_ms(50);
 
     write_command(ILI9225_DRIVER_OUTPUT_CTRL);
-    write_data(0x01);
-    write_data(0x1C);
+    write_data(0x01); write_data(0x1C);
     write_command(ILI9225_LCD_AC_DRIVING_CTRL);
-    write_data(0x01);
-    write_data(0x00);
+    write_data(0x01); write_data(0x00);
     write_command(ILI9225_ENTRY_MODE);
-    write_data(0x10);
-    write_data(0x38);
+    write_data(0x10); write_data(0x38);
     write_command(ILI9225_DISP_CTRL1);
-    write_data(0x00);
-    write_data(0x00);
+    write_data(0x00); write_data(0x00);
     write_command(ILI9225_BLANK_PERIOD_CTRL1);
-    write_data(0x08);
-    write_data(0x08);
+    write_data(0x08); write_data(0x08);
 
     write_command(ILI9225_FRAME_CYCLE_CTRL);
-    write_data(0x11);
-    write_data(0x00);
+    write_data(0x11); write_data(0x00);
     write_command(ILI9225_INTERFACE_CTRL);
-    write_data(0x00);
-    write_data(0x00);
+    write_data(0x00); write_data(0x00);
     write_command(ILI9225_OSC_CTRL);
-    write_data(0x0D);
-    write_data(0x01);
+    write_data(0x0D); write_data(0x01);
     write_command(ILI9225_VCI_RECYCLING);
-    write_data(0x00);
-    write_data(0x20);
+    write_data(0x00); write_data(0x20);
     write_command(ILI9225_RAM_ADDR_SET1);
-    write_data(0x00);
-    write_data(0x00);
+    write_data(0x00); write_data(0x00);
     write_command(ILI9225_RAM_ADDR_SET2);
-    write_data(0x00);
-    write_data(0x00);
+    write_data(0x00); write_data(0x00);
 
     /* Set GRAM area */
     write_command(ILI9225_GATE_SCAN_CTRL);
-    write_data(0x00);
-    write_data(0x00);
+    write_data(0x00); write_data(0x00);
     write_command(ILI9225_VERTICAL_SCROLL_CTRL1);
-    write_data(0x00);
-    write_data(0xDB);
+    write_data(0x00); write_data(0xDB);
     write_command(ILI9225_VERTICAL_SCROLL_CTRL2);
-    write_data(0x00);
-    write_data(0x00);
+    write_data(0x00); write_data(0x00);
     write_command(ILI9225_VERTICAL_SCROLL_CTRL3);
-    write_data(0x00);
-    write_data(0x00);
+    write_data(0x00); write_data(0x00);
     write_command(ILI9225_PARTIAL_DRIVING_POS1);
-    write_data(0x00);
-    write_data(0xDB);
+    write_data(0x00); write_data(0xDB);
     write_command(ILI9225_PARTIAL_DRIVING_POS2);
-    write_data(0x00);
-    write_data(0x00);
+    write_data(0x00); write_data(0x00);
     write_command(ILI9225_HORIZONTAL_WINDOW_ADDR1);
-    write_data(0x00);
-    write_data(0xAF);
+    write_data(0x00); write_data(0xAF);
     write_command(ILI9225_HORIZONTAL_WINDOW_ADDR2);
-    write_data(0x00);
-    write_data(0x00);
+    write_data(0x00); write_data(0x00);
     write_command(ILI9225_VERTICAL_WINDOW_ADDR1);
-    write_data(0x00);
-    write_data(0xDB);
+    write_data(0x00); write_data(0xDB);
     write_command(ILI9225_VERTICAL_WINDOW_ADDR2);
-    write_data(0x00);
-    write_data(0x00);
+    write_data(0x00); write_data(0x00);
 
     /* Set GAMMA curve */
     write_command(ILI9225_GAMMA_CTRL1);
-    write_data(0x00);
-    write_data(0x00);
+    write_data(0x00); write_data(0x00);
     write_command(ILI9225_GAMMA_CTRL2);
-    write_data(0x08);
-    write_data(0x08);
+    write_data(0x08); write_data(0x08);
     write_command(ILI9225_GAMMA_CTRL3);
-    write_data(0x08);
-    write_data(0x0A);
+    write_data(0x08); write_data(0x0A);
     write_command(ILI9225_GAMMA_CTRL4);
-    write_data(0x00);
-    write_data(0x0A);
+    write_data(0x00); write_data(0x0A);
     write_command(ILI9225_GAMMA_CTRL5);
-    write_data(0x0A);
-    write_data(0x08);
+    write_data(0x0A); write_data(0x08);
     write_command(ILI9225_GAMMA_CTRL6);
-    write_data(0x08);
-    write_data(0x08);
+    write_data(0x08); write_data(0x08);
     write_command(ILI9225_GAMMA_CTRL7);
-    write_data(0x00);
-    write_data(0x00);
+    write_data(0x00); write_data(0x00);
     write_command(ILI9225_GAMMA_CTRL8);
-    write_data(0x0A);
-    write_data(0x00);
+    write_data(0x0A); write_data(0x00);
     write_command(ILI9225_GAMMA_CTRL9);
-    write_data(0x07);
-    write_data(0x10);
+    write_data(0x07); write_data(0x10);
     write_command(ILI9225_GAMMA_CTRL10);
-    write_data(0x07);
-    write_data(0x10);
+    write_data(0x07); write_data(0x10);
 
     write_command(ILI9225_DISP_CTRL1);
-    write_data(0x00);
-    write_data(0x12);
+    write_data(0x00); write_data(0x12);
     nrf_delay_ms(50);
 
     write_command(ILI9225_DISP_CTRL1);
-    write_data(0x10);
-    write_data(0x17);
+    write_data(0x10); write_data(0x17);
 }
 
 static ret_code_t hardware_init(void)
@@ -370,7 +334,7 @@ void ili9225_clear()
 
     nrf_gpio_pin_clear(ILI9225_DC_PIN);
 
-    memset(frame_buffer, 0x00, 176*440);
+    //memset(frame_buffer, 0x00, 176*440);
 }
 
 void ili9225_draw_line(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint32_t color)

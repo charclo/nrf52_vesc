@@ -88,10 +88,7 @@ uint16_t offset = 0;
 uint8_t buffer[10];
 uint32_t time;
 uint16_t sin_table[176] = {
-    20, 21, 21, 22, 23, 24, 24, 25, 26, 26, 27, 28, 28, 29, 30, 30,
-    31, 31, 32, 33, 33, 34, 34, 35, 35, 36, 36, 36, 37, 37, 38, 38, 38, 38, 39, 39, 39, 39, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 39, 39, 39, 39, 38, 38, 38, 38, 37, 37, 36, 36, 36, 35, 35, 34, 34, 33, 33, 32, 31, 31, 30, 30, 29, 28, 28, 27, 26, 26,
-    25, 24, 24, 23, 22, 21, 21, 20, 19, 19, 18, 17, 16, 16, 15, 14, 14, 13, 12, 12, 11, 10, 10, 9, 9, 8, 7, 7, 6, 6, 5, 5, 4, 4, 4, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 4, 4, 4, 5, 5, 6, 6, 7, 7, 8, 9,
-    9, 10, 10, 11, 12, 12, 13, 14, 14, 15, 16, 16, 17, 18, 19, 19};
+    10, 10, 11, 11, 11, 12, 12, 12, 13, 13, 13, 14, 14, 14, 15, 15, 15, 16, 16, 16, 17, 17, 17, 17, 18, 18, 18, 18, 18, 19, 19, 19, 19, 19, 19, 19, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 19, 19, 19, 19, 19, 19, 19, 18, 18, 18, 18, 18, 17, 17, 17, 17, 16, 16, 16, 15, 15, 15, 14, 14, 14, 13, 13, 13, 12, 12, 12, 11, 11, 11, 10, 10, 10, 9, 9, 9, 8, 8, 8, 7, 7, 7, 6, 6, 6, 5, 5, 5, 4, 4, 4, 3, 3, 3, 3, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10};
 uint16_t base_y = 100;
 // uint32_t charging_color = COLOR_DARKGREEN;
 
@@ -174,7 +171,7 @@ void tft_util_draw_number(
     }
 }
 
-void _update_battery_indicator(float battery_percent, bool redraw)
+void update_battery_indicator(float battery_percent, bool redraw)
 {
     int width = 15;
     int space = 2;
@@ -185,7 +182,7 @@ void _update_battery_indicator(float battery_percent, bool redraw)
                                           ILI9225_HEIGHT,
                                           BORDER);
 
-    int cells_to_fill = round(battery_percent * cell_count);
+    int cells_to_fill = battery_percent * cell_count;
     for (int i = 0; i < cell_count; i++)
     {
         bool is_filled = (i < _battery_cells_filled);
@@ -214,9 +211,13 @@ void _update_battery_indicator(float battery_percent, bool redraw)
     _battery_cells_filled = cells_to_fill;
 }
 
+	uint32_t time;
+	uint32_t time_diff;
+	uint8_t buffer[10];
+
 void draw_ui()
 {
-    _update_battery_indicator(0.7f, true);
+    update_battery_indicator(0.49f, false);
 
     text_print(0, 110, COLOR_WHITE, "TRIP KM     ");
     text_print(0, 175, COLOR_WHITE, "TOTAL KM    ");
@@ -231,11 +232,6 @@ void draw_ui()
     text_print(40, 21, COLOR_WHITE, "C");
 
     char buffer[10];
-    sprintf(buffer, "%.1f", speed);
-    tft_util_draw_number(buffer, 2, 35, COLOR_WHITE, COLOR_BLACK, 10, 14);
-
-    sprintf(buffer, "%.1f", trip);
-    tft_util_draw_number(buffer, 0, 130, COLOR_WHITE, COLOR_BLACK, 2, 6);
 
     float watts = 245.3f;
     sprintf(buffer, "%.1f", watts);
@@ -249,8 +245,38 @@ void draw_ui()
     sprintf(buffer, "%.1f", voltage);
     tft_util_draw_number(buffer, 105, 190, COLOR_WHITE, COLOR_BLACK, 2, 6);
 
-    speed+=0.1;
-    trip+=0.1;
+
+}
+
+void update_ui(void)
+{
+
+    char buffer[10];
+    sprintf(buffer, "%.1f", speed);
+    tft_util_draw_number(buffer, 2, 35, COLOR_WHITE, COLOR_BLACK, 10, 14);
+
+    sprintf(buffer, "%.1f", trip);
+    tft_util_draw_number(buffer, 0, 130, COLOR_WHITE, COLOR_BLACK, 2, 6);
+    speed+=0.001;
+    trip+=0.001;
+}
+
+void overlay(void){
+    nrf_gfx_rect_t my_rect = NRF_GFX_RECT(10,
+                                          10,
+                                          80,
+                                          20);
+
+    APP_ERROR_CHECK(nrf_gfx_rect_draw(&nrf_lcd_ili9225, &my_rect, 1, COLOR_BLACK, true));
+
+    time_diff = app_timer_cnt_diff_compute(app_timer_cnt_get(), time);
+    float seconds_elapsed = 1/ ((float)time_diff / (32 * 1000));
+    sprintf(buffer, "%f", seconds_elapsed);
+    
+    time = app_timer_cnt_get();
+
+    text_print(12, 12, COLOR_WHITE, buffer);
+
 }
 
 void charging_basic(void)
@@ -274,9 +300,9 @@ void charging(void)
         height = 40 - sin_table[i_offset];
         if (height > 0)
         {
-            ili9225_draw_line(i, base_y - 40, 1, height, COLOR_BLUE);
+            ili9225_draw_line(i, base_y - 40, 1, height, COLOR_BLACK);
         }
     }
 
-    offset += 1;
+    offset += 5;
 }

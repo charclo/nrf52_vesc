@@ -809,15 +809,15 @@ int main(void)
 	//nrf_cal_init();
 	//nrf_cal_set_callback(print_current_time, 10);
 
-	uart_init();
+	// uart_init();
 	app_timer_init();
 	nrf_pwr_mgmt_init();
 	ble_stack_init();
-	gap_params_init();
-	gatt_init();
-	services_init();
-	advertising_init();
-	conn_params_init();
+	//gap_params_init();
+	//gatt_init();
+	//services_init();
+	//advertising_init();
+	//conn_params_init();
 	APP_ERROR_CHECK(nrf_gfx_init(&nrf_lcd_ili9225));
 
 	//printf("\r\nClock started\n");
@@ -826,30 +826,31 @@ int main(void)
 
 	(void)set_enabled;
 
-	packet_init(uart_send_buffer, process_packet_vesc, PACKET_VESC);
-	packet_init(ble_send_buffer, process_packet_ble, PACKET_BLE);
+	//packet_init(uart_send_buffer, process_packet_vesc, PACKET_VESC);
+	//packet_init(ble_send_buffer, process_packet_ble, PACKET_BLE);
 
 	app_timer_create(&m_packet_timer, APP_TIMER_MODE_REPEATED, packet_timer_handler);
 	app_timer_start(m_packet_timer, APP_TIMER_TICKS(1), NULL);
 
-	app_timer_create(&m_nrf_timer, APP_TIMER_MODE_REPEATED, nrf_timer_handler);
-	app_timer_start(m_nrf_timer, APP_TIMER_TICKS(1000), NULL);
+	//app_timer_create(&m_nrf_timer, APP_TIMER_MODE_REPEATED, nrf_timer_handler);
+	//app_timer_start(m_nrf_timer, APP_TIMER_TICKS(1000), NULL);
 
-	esb_timeslot_init(esb_timeslot_data_handler);
-	esb_timeslot_sd_start();
+	//esb_timeslot_init(esb_timeslot_data_handler);
+	//esb_timeslot_sd_start();
 
 #ifdef NRF52840_XXAA
 	app_usbd_power_events_enable();
 #endif
 
-	start_advertising();
+	//start_advertising();
 
 	float trip = 12.4f;
 	float speed = 10.1f;
 
 	// ili9225_clear();
 
-	// draw_ui();
+	update_battery_indicator(0.7f, true);
+	draw_ui();
 	// charging_basic();
 
 	// screen_clear();
@@ -868,7 +869,7 @@ int main(void)
 		}
 #endif
 
-		if (m_uart_error)
+/* 		if (m_uart_error)
 		{
 			app_uart_close();
 			uart_init();
@@ -880,58 +881,20 @@ int main(void)
 		while (app_uart_get(&byte) == NRF_SUCCESS)
 		{
 			packet_process_byte(byte, PACKET_VESC);
-		}
+		} */
 
-		ili9225_clear();
-
-/* 		time_diff = app_timer_cnt_diff_compute(app_timer_cnt_get(), time);
-		sprintf(buffer, "%u", time_diff);
-		text_print(5, 5, COLOR_WHITE, buffer);
-
-		float seconds_elapsed = (float)time_diff / (32 * 1000);
-		sprintf(buffer, "%f", seconds_elapsed);
-		text_print(5, 20, COLOR_WHITE, buffer);
-
-		time = app_timer_cnt_get(); */
+		nrf_gfx_display(&nrf_lcd_ili9225);
 
 		// charging();
 
-		/* 		for (size_t i = 0; i < 1000; i++)
-		{
-			ili9225_pixel_draw(1, 1, COLOR_WHITE);
-		} */
+		// charging_basic();
+		//charging();
 
-/* 		time_diff = app_timer_cnt_diff_compute(app_timer_cnt_get(), time);
-		sprintf(buffer, "%u", time_diff);
-		text_print(5, 35, COLOR_WHITE, buffer);
+		update_ui();
+		overlay();
 
-		seconds_elapsed = (float)time_diff / (32 * 1000);
-		sprintf(buffer, "%f", seconds_elapsed);
-		text_print(5, 50, COLOR_WHITE, buffer); */
+		// nrf_delay_ms(1000);
 
-		// screen_clear();
-		if(on){
-			ili9225_pixel_draw(10, 100, COLOR_BLACK);
-			on = false;
-		}
-
-		else{
-			ili9225_pixel_draw(10, 100, COLOR_WHITE);
-			on = true;
-		}
-
-		charging_basic();
-		charging();
-
- 		//ili9225_draw_line(10, 15, 1, 100, COLOR_BLUE);
-		//ili9225_draw_line(10, 140, 100, 1, COLOR_YELLOW);
-
-		//ili9225_rect_draw(10, 10, 10, 10, COLOR_VIOLET);
-
-		//draw_ui();
-
-		//nrf_delay_ms(1000);
-
-		sd_app_evt_wait();
+		// sd_app_evt_wait();
 	}
 }
